@@ -20,7 +20,7 @@ const handler = NextAuth({
           { email: user.email }, // Find by email
           {
             email: user.email,
-            username: profile.name ?? user.name, // Use profile info if available
+            username: profile?.name ?? user.name, // Use profile info if available
           },
           { upsert: true, new: true, setDefaultsOnInsert: true } // Options to upsert (update existing, insert if not exists)
         );

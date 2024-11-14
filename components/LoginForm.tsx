@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,11 @@ import { signIn } from "next-auth/react";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const navigateToRegister = () => {
+    router.push('/register'); // Change to your register path as needed
+  };
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -112,7 +118,7 @@ export default function LoginForm() {
       <CardFooter className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">
           <span className="mr-1">Don't have an account?</span>
-          <Button variant="link" className="p-0 text-indigo-600 hover:text-indigo-700">Sign up</Button>
+          <Button variant="link" onClick={navigateToRegister} className="p-0 text-indigo-600 hover:text-indigo-700">Sign up</Button>
         </div>
         <Button variant="link" className="text-sm text-muted-foreground hover:text-indigo-600 p-0">
           Forgot password?
