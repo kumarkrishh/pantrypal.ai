@@ -117,7 +117,7 @@ export default function LoginForm() {
       </CardContent>
       <CardFooter className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">
-          <span className="mr-1">Don't have an account?</span>
+          <span className="mr-1">Don&apos;t have an account?</span>
           <Button variant="link" onClick={navigateToRegister} className="p-0 text-indigo-600 hover:text-indigo-700">Sign up</Button>
         </div>
         <Button variant="link" className="text-sm text-muted-foreground hover:text-indigo-600 p-0">
