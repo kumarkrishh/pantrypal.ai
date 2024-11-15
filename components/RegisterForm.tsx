@@ -8,9 +8,16 @@ import { ArrowRight } from "lucide-react";
 import { FcGoogle } from 'react-icons/fc';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { signIn } from "next-auth/react"; // You might want to create a separate registration API or method
+import { useRouter } from 'next/navigation'; 
 
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const navigateToLogin = () => {
+    router.push('/login'); // Change to your login path as needed
+  };
+
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -100,7 +107,7 @@ export default function RegisterForm() {
       <CardFooter className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm text-muted-foreground">
           <span className="mr-1">Already have an account?</span>
-          <Button variant="link" className="p-0 text-indigo-600 hover:text-indigo-700">Sign in</Button>
+          <Button variant="link" onClick={navigateToLogin} className="p-0 text-indigo-600 hover:text-indigo-700">Sign in</Button>
         </div>
       </CardFooter>
     </Card>
