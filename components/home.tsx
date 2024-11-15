@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
 import { Toaster } from "@/components/ui/toaster";
+import Image from 'next/image';
 
 export default function RecipeGenerator() {
   const [ingredients, setIngredients] = useState('');
@@ -137,10 +137,11 @@ export default function RecipeGenerator() {
               {recipes.map((recipe) => (
                 <li key={recipe.id}>
                   <h4>{recipe.title}</h4>
-                  <img
+                  <Image
                     src={recipe.image}
                     alt={recipe.title}
-                    style={{ width: '50%' }}
+                    width={500}
+                    height={300}
                   />
                   <p>Preparation time: {recipe.readyInMinutes} minutes</p>
                   <p>Serves: {recipe.servings} people</p>
