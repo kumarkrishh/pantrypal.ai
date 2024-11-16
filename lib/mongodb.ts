@@ -1,5 +1,10 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
+// Add this type declaration at the top of the file
+declare global {
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
+}
+
 const uri = process.env.MONGODB_URI;
 if (!uri) {
   throw new Error('Please add your Mongo URI to .env');
