@@ -5,7 +5,7 @@ const nextConfig = {
   },
   images: { unoptimized: true },
   experimental: {
-    appDir: true,
+    // appDir: true,
   },
 };
 

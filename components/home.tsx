@@ -29,6 +29,16 @@ export default function RecipeGenerator() {
         },
       });
 
+      const spoonacularRecipes = response.data;
+
+      // Fetch additional data from MongoDB
+      const mongoResponse = await axios.get('/api/recipes');
+      const mongoRecipes = mongoResponse.data;
+
+      // Combine the recipes from Spoonacular and MongoDB
+      setRecipes([...spoonacularRecipes, ...mongoRecipes]);
+      setIsRecipeGenerated(true);
+
       if (response.data.length === 0) {
         setError('No recipes found with the given ingredients.');
       } else {
