@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
-import { Toaster } from "@/components/ui/toaster";
+// import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 
 export default function RecipeGenerator() {
@@ -29,6 +29,16 @@ export default function RecipeGenerator() {
           apiKey: apiKey,
         },
       });
+
+      const spoonacularRecipes = response.data;
+
+      // Fetch additional data from MongoDB
+      const mongoResponse = await axios.get('/api/recipes');
+      const mongoRecipes = mongoResponse.data;
+
+      // Combine the recipes from Spoonacular and MongoDB
+      setRecipes([...spoonacularRecipes, ...mongoRecipes]);
+      setIsRecipeGenerated(true);
 
       if (response.data.length === 0) {
         setError('No recipes found with the given ingredients.');
@@ -173,7 +183,7 @@ export default function RecipeGenerator() {
           </div>
         )}
       </div>
-      <Toaster />
+{/*       <Toaster /> */}
     </div>
   );
 }
