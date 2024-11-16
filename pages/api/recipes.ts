@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase, insertRecipe } from 'lib/mongodb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { db } = await connectToDatabase();
+  const db = await connectToDatabase();
 
   if (req.method === 'POST') {
     const recipe = req.body;
