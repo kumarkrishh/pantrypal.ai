@@ -27,8 +27,6 @@ npm install
 npm start
 ```
 
-The app will be accessible at [http://localhost:3000](http://localhost:3000) in your browser.
+The app will be visible at [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
-
-PantryPal.ai is your go-to solution for turning what's in your pantry into mouth-watering meals. Cook with confidence, creativity, and convenience!
