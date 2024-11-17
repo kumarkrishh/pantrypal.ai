@@ -22,9 +22,8 @@ cd PantryPal
 ### To run the Frontend (React):
 
 ```bash
-cd frontend
 npm install
-npm start
+npm start dev
 ```
 
 The app will be visible at [http://localhost:3000](http://localhost:3000) in your browser.
