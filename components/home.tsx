@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
-// import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 
 export default function RecipeGenerator() {
@@ -194,7 +193,6 @@ export default function RecipeGenerator() {
           </div>
         )}
       </div>
-{/*       <Toaster /> */}
     </div>
   );
 }
