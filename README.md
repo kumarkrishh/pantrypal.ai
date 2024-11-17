@@ -15,8 +15,8 @@ PantryPal.ai is your personal kitchen assistant, designed to help you create del
 ### Clone the Repository:
 
 ```bash
-git clone https://github.com/your-repo/PantryPal.git
-cd PantryPal
+git clone https://github.com/kumarkrishh/pantrypal.ai
+cd pantrypal.ai
 ```
 
 ### To run the Frontend (React):
