@@ -13,7 +13,7 @@ export default function RecipeGenerator() {
   const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
   const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
 
-  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY || 'e533c17590524ce8abdc04abfbf4c499';
+  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
 
   const handleGenerateRecipe = async () => {
     setLoading(true);
