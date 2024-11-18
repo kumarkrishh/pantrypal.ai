@@ -29,16 +29,6 @@ export default function RecipeGenerator() {
         },
       });
 
-      const spoonacularRecipes = response.data;
-
-      // Fetch additional data from MongoDB
-      const mongoResponse = await axios.get('/api/recipes');
-      const mongoRecipes = mongoResponse.data;
-
-      // Combine the recipes from Spoonacular and MongoDB
-      setRecipes([...spoonacularRecipes, ...mongoRecipes]);
-      setIsRecipeGenerated(true);
-
       if (response.data.length === 0) {
         setError('No recipes found with the given ingredients.');
       } else {
@@ -144,39 +134,60 @@ export default function RecipeGenerator() {
             <h3>Recipes Found:</h3>
             <ul>
               {recipes.map((recipe) => (
-                <li key={recipe.id}>
-                  <h4>{recipe.title}</h4>
-                  <Image
-                    src={recipe.image}
-                    alt={recipe.title}
-                    width={500}
-                    height={300}
-                  />
-                  <p>Preparation time: {recipe.readyInMinutes} minutes</p>
-                  <p>Serves: {recipe.servings} people</p>
-                  <h5>Ingredients:</h5>
-                  <ul>
-                    {recipe.extendedIngredients.map((ingredient: any, index: number) => {
-                      const isInputIngredient = ingredientVariants.some((variant) =>
-                        ingredient.name.toLowerCase().includes(variant)
-                      );
-                      return (
-                        <li
-                          key={`${recipe.id}-${ingredient.id}-${index}`}
-                          style={{ color: isInputIngredient ? 'green' : 'red' }}
-                        >
-                          {ingredient.original}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <h5>Instructions:</h5>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: recipe.instructions,
-                    }}
-                  />
-                </li>
+                <li key={recipe.id}>
+                    <h4>{recipe.title}</h4>
+                    <Image
+                    src={recipe.image}
+                    alt={recipe.title}
+                    width={500}
+                    height={300}
+                    />
+                    <p>Preparation time: {recipe.readyInMinutes} minutes</p>
+                    <p>Serves: {recipe.servings} people</p>
+                    <h5>Ingredients:</h5>
+                    <ul>
+                    {recipe.extendedIngredients.map((ingredient: any, index: number) => {
+                        const isInputIngredient = ingredientVariants.some((variant) =>
+                        ingredient.name.toLowerCase().includes(variant)
+                        );
+                        return (
+                        <li
+                            key={`${recipe.id}-${ingredient.id}-${index}`}
+                            style={{ color: isInputIngredient ? 'green' : 'red' }}
+                        >
+                            {ingredient.original}
+                        </li>
+                        );
+                    })}
+                    </ul>
+                    <h5>Instructions:</h5>
+                    <div
+                    dangerouslySetInnerHTML={{
+                        __html: recipe.instructions,
+                    }}
+                    />
+                    <button
+                    onClick={async () => {
+                        try {
+                        const response = await axios.post('/api/saveRecipe', recipe);
+                        alert(response.data.message);
+                        } catch (error) {
+                        console.error(error);
+                        alert('Failed to save recipe.');
+                        }
+                    }}
+                    style={{
+                        marginTop: '10px',
+                        padding: '10px 20px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                    }}
+                    >
+                    Save Recipe
+                    </button>
+                </li>
               ))}
             </ul>
           </div>
