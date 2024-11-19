@@ -12,6 +12,9 @@ export default function RecipeGenerator() {
   const [error, setError] = useState('');
   const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
   const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
+  const [prompt, setPrompt] = useState('');
+  const [processedRecipe, setProcessedRecipe] = useState('');
+  const [processing, setProcessing] = useState(false);
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY || 'e533c17590524ce8abdc04abfbf4c499';
 
@@ -127,6 +130,27 @@ export default function RecipeGenerator() {
           </button>
         )}
       </div>
+    {/* Prompt stuff */}
+    {isRecipeGenerated && (
+       
+       <div style={{
+            marginTop: '20px'  
+        }}>
+            <h3>Modify this Recipe</h3>
+            <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Enter your prompt here"
+                style={{
+                    width: '100%',
+                    padding: '8px',
+                    height: '100px',
+                    marginBottom: '10px'
+                }}
+                />
+                </div>
+    )}
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div style={{ marginTop: '20px' }}>
         {recipes.length > 0 && (
