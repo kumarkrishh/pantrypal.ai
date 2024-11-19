@@ -486,7 +486,7 @@ export default function RecipeGenerator() {
 
   return (
     <div style={styles.container}>
-      <h2>Pantry Pal</h2>
+      <h2 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center' }}>Pantry Pal</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
         {/* Image upload section */}
         <div style={styles.imageUploadContainer}>
