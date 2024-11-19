@@ -336,10 +336,10 @@
 //   };
   
 'use client';
-
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
 
 export default function RecipeGenerator() {
@@ -350,70 +350,124 @@ export default function RecipeGenerator() {
   const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
   const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
   const [numRecipes, setNumRecipes] = useState(1);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
+  const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-  const handleGenerateRecipe = async () => {
-    setLoading(true);
-    setError('');
-    setRecipes([]);
-    try {
-      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-        params: {
-          ingredients: ingredients,
-          number: numRecipes,
-          ranking: 1,
-          apiKey: apiKey,
-        },
-      });
-
-      const availableRecipes = response.data.length;
-      const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
-
-      if (availableRecipes === 0) {
-        setError('No recipes found with the given ingredients. Please try generating a new recipe.');
-      } else {
-        const recipeDetailsPromises = response.data.map((recipe: any) =>
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-            params: { apiKey: apiKey },
-          })
-        );
-
-        const nutritionPromises = response.data.map((recipe: any) =>
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-            params: { apiKey: apiKey },
-          })
-        );
-
-        const [recipeDetailsResponses, nutritionResponses] = await Promise.all([
-          Promise.all(recipeDetailsPromises),
-          Promise.all(nutritionPromises),
-        ]);
-
-        const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
-          ...res.data,
-          nutrition: nutritionResponses[index].data,
-        }));
-
-        const filteredRecipes = detailedRecipes.filter((recipe) => {
-          const additionalIngredients = recipe.extendedIngredients.filter((ingredient: any) => {
-            const isInputIngredient = ingredientVariants.some((variant) =>
-              ingredient.name.toLowerCase().includes(variant)
-            );
-            return !isInputIngredient;
-          });
-          return additionalIngredients.length <= maxAdditionalIngredients;
-        });
-
-        setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
-        setIsRecipeGenerated(true);
+  const fileToGenerativePart = async (file: File) => {
+    const buffer = await file.arrayBuffer();
+    return {
+      inlineData: {
+        data: Buffer.from(buffer).toString('base64'),
+        mimeType: file.type
       }
-    } catch (err) {
-      setError('An error occurred while fetching the recipes.');
-    } finally {
-      setLoading(false);
+    };
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      
+      try {
+        setLoading(true);
+        const genAI = new GoogleGenerativeAI(geminiKey!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        const imagePart = await fileToGenerativePart(file);
+        const prompt = "List all the ingredients you can see in this image. Return them as a comma-separated list.";
+        
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        const text = response.text();
+        
+        setIngredients(text);
+      } catch (err) {
+        setError('Error processing image');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
+  
+    const parseIngredientsWithGemini = async (text: string) => {
+      const genAI = new GoogleGenerativeAI(geminiKey!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const prompt = `Parse this text into a comma-separated list of ingredients: ${text}`;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text().split(',').map(i => i.trim());
+    }
+  
+    const handleGenerateRecipe = async () => {
+      setLoading(true);
+      setError('');
+      setRecipes([]);
+      
+      try {
+        const parsedIngredients = await parseIngredientsWithGemini(ingredients);
+        
+        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+          params: {
+            ingredients: parsedIngredients.join(','),
+            number: numRecipes,
+            ranking: 1,
+            apiKey: apiKey,
+          },
+        });
+        
+        const availableRecipes = response.data.length;
+        const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
+  
+        if (availableRecipes === 0) {
+          setError('No recipes found with the given ingredients. Please try generating a new recipe.');
+        } else {
+          const recipeDetailsPromises = response.data.map((recipe: any) =>
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+              params: { apiKey: apiKey },
+            })
+          );
+  
+          const nutritionPromises = response.data.map((recipe: any) =>
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+              params: { apiKey: apiKey },
+            })
+          );
+  
+          const [recipeDetailsResponses, nutritionResponses] = await Promise.all([
+            Promise.all(recipeDetailsPromises),
+            Promise.all(nutritionPromises),
+          ]);
+  
+          const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
+            ...res.data,
+            nutrition: nutritionResponses[index].data,
+          }));
+  
+          const filteredRecipes = detailedRecipes.filter((recipe) => {
+            const additionalIngredients = recipe.extendedIngredients.filter((ingredient: any) => {
+              const isInputIngredient = ingredientVariants.some((variant) =>
+                ingredient.name.toLowerCase().includes(variant)
+              );
+              return !isInputIngredient;
+            });
+            return additionalIngredients.length <= maxAdditionalIngredients;
+          });
+  
+          setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
+          setIsRecipeGenerated(true);
+        }
+      } catch (err) {
+        setError('An error occurred while fetching the recipes.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleNewRecipe = () => {
     setIngredients('');
@@ -433,13 +487,34 @@ export default function RecipeGenerator() {
   return (
     <div style={styles.container}>
       <h2 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center' }}>Pantry Pal</h2>
-     
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
+        {/* Image upload section */}
+        <div style={styles.imageUploadContainer}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={isRecipeGenerated}
+            style={styles.fileInput}
+          />
+          {imagePreview && (
+            <div style={styles.imagePreviewContainer}>
+              <Image
+                src={imagePreview}
+                alt="Uploaded ingredients"
+                width={200}
+                height={200}
+                style={styles.imagePreview}
+              />
+            </div>
+          )}
+        </div>
+
         <input
           type="text"
           value={ingredients}
           onChange={(e) => setIngredients(e.target.value)}
-          placeholder="Enter ingredients (comma separated)"
+          placeholder="Enter ingredients (comma separated) or upload an image"
           style={styles.input}
           disabled={isRecipeGenerated}
         />
@@ -677,5 +752,21 @@ const styles = {
       border: 'none',
       borderRadius: '5px',
       cursor: 'pointer',
+    },
+    imageUploadContainer: {
+      marginBottom: '20px',
+    },
+    fileInput: {
+      marginBottom: '10px',
+    },
+    imagePreviewContainer: {
+      maxWidth: '200px',
+      marginTop: '10px',
+    },
+    imagePreview: {
+      width: '100%',
+      height: 'auto',
+      objectFit: 'cover' as const,
+      borderRadius: '8px',
     },
 };
