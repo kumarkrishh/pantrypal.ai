@@ -1,40 +1,75 @@
-import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { connectToDB } from '@/utils/database'; // Adjust path as necessary
-import User from '@/models/user'; // Adjust path as necessary
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import User from '@/models/User';
+import { connectToDB } from '@/utils/database';
 
 const handler = NextAuth({
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-  ],
-  callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      await connectToDB(); // Ensure MongoDB is connected
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Invalid credentials');
+        }
 
-      try {
-        // Find or create user in MongoDB
-        const result = await User.findOneAndUpdate(
-          { email: user.email }, // Find by email
-          {
-            email: user.email,
-            username: profile?.name ?? user.name, // Use profile info if available
-          },
-          { upsert: true, new: true, setDefaultsOnInsert: true } // Options to upsert (update existing, insert if not exists)
+        await connectToDB();
+
+        const user = await User.findOne({ email: credentials.email });
+
+        if (!user || !user.password) {
+          throw new Error('Invalid credentials');
+        }
+
+        const isCorrectPassword = await bcrypt.compare(
+          credentials.password,
+          user.password
         );
 
-        console.log('User logged in:', result);
-        return true; // Return true to confirm successful sign in
-      } catch (error) {
-        console.error('Error updating user in MongoDB:', error);
-        return false; // Return false to deny sign in
+        if (!isCorrectPassword) {
+          throw new Error('Invalid credentials');
+        }
+
+        return {
+          id: user.id, // Explicit `id` field from the schema
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
+  ],
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      // Use a type assertion here
+      session.user = {
+        ...session.user,
+        id: token.id as string, // Add `id` manually
+      } as { id: string; name?: string | null; email?: string | null; image?: string | null };
+      return session;
     },
   },
-  pages: {
-    signIn: "/", // Custom sign-in page if necessary
+  
+  session: {
+    strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
