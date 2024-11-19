@@ -340,80 +340,97 @@
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
 
+
+
 export default function RecipeGenerator() {
-  const [ingredients, setIngredients] = useState('');
-  const [recipes, setRecipes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
-  const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
-  const [numRecipes, setNumRecipes] = useState(1);
-
-  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
-
-  const handleGenerateRecipe = async () => {
-    setLoading(true);
-    setError('');
-    setRecipes([]);
-    try {
-      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-        params: {
-          ingredients: ingredients,
-          number: numRecipes,
-          ranking: 1,
-          apiKey: apiKey,
-        },
-      });
-
-      const availableRecipes = response.data.length;
-      const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
-
-      if (availableRecipes === 0) {
-        setError('No recipes found with the given ingredients. Please try generating a new recipe.');
-      } else {
-        const recipeDetailsPromises = response.data.map((recipe: any) =>
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-            params: { apiKey: apiKey },
-          })
-        );
-
-        const nutritionPromises = response.data.map((recipe: any) =>
-          axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-            params: { apiKey: apiKey },
-          })
-        );
-
-        const [recipeDetailsResponses, nutritionResponses] = await Promise.all([
-          Promise.all(recipeDetailsPromises),
-          Promise.all(nutritionPromises),
-        ]);
-
-        const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
-          ...res.data,
-          nutrition: nutritionResponses[index].data,
-        }));
-
-        const filteredRecipes = detailedRecipes.filter((recipe) => {
-          const additionalIngredients = recipe.extendedIngredients.filter((ingredient: any) => {
-            const isInputIngredient = ingredientVariants.some((variant) =>
-              ingredient.name.toLowerCase().includes(variant)
-            );
-            return !isInputIngredient;
-          });
-          return additionalIngredients.length <= maxAdditionalIngredients;
-        });
-
-        setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
-        setIsRecipeGenerated(true);
-      }
-    } catch (err) {
-      setError('An error occurred while fetching the recipes.');
-    } finally {
-      setLoading(false);
+    const [ingredients, setIngredients] = useState('');
+    const [recipes, setRecipes] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
+    const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
+    const [numRecipes, setNumRecipes] = useState(1);
+    
+    const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
+    const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  
+    const parseIngredientsWithGemini = async (text: string) => {
+      const genAI = new GoogleGenerativeAI(geminiKey!);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const prompt = `Parse this text into a comma-separated list of ingredients: ${text}`;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text().split(',').map(i => i.trim());
     }
-  };
+  
+    const handleGenerateRecipe = async () => {
+      setLoading(true);
+      setError('');
+      setRecipes([]);
+      
+      try {
+        const parsedIngredients = await parseIngredientsWithGemini(ingredients);
+        
+        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+          params: {
+            ingredients: parsedIngredients.join(','),
+            number: numRecipes,
+            ranking: 1,
+            apiKey: apiKey,
+          },
+        });
+        
+        const availableRecipes = response.data.length;
+        const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
+  
+        if (availableRecipes === 0) {
+          setError('No recipes found with the given ingredients. Please try generating a new recipe.');
+        } else {
+          const recipeDetailsPromises = response.data.map((recipe: any) =>
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+              params: { apiKey: apiKey },
+            })
+          );
+  
+          const nutritionPromises = response.data.map((recipe: any) =>
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+              params: { apiKey: apiKey },
+            })
+          );
+  
+          const [recipeDetailsResponses, nutritionResponses] = await Promise.all([
+            Promise.all(recipeDetailsPromises),
+            Promise.all(nutritionPromises),
+          ]);
+  
+          const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
+            ...res.data,
+            nutrition: nutritionResponses[index].data,
+          }));
+  
+          const filteredRecipes = detailedRecipes.filter((recipe) => {
+            const additionalIngredients = recipe.extendedIngredients.filter((ingredient: any) => {
+              const isInputIngredient = ingredientVariants.some((variant) =>
+                ingredient.name.toLowerCase().includes(variant)
+              );
+              return !isInputIngredient;
+            });
+            return additionalIngredients.length <= maxAdditionalIngredients;
+          });
+  
+          setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
+          setIsRecipeGenerated(true);
+        }
+      } catch (err) {
+        setError('An error occurred while fetching the recipes.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleNewRecipe = () => {
     setIngredients('');
