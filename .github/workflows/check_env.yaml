@@ -1,0 +1,27 @@
+name: Check for .env Files
+
+on:
+  push:
+    branches:
+      - '**' # Triggers on all branches
+  pull_request:
+    branches:
+      - '**' # Triggers on all branches
+
+jobs:
+  check-env-files:
+    name: Check for .env Files
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Find .env files
+      run: |
+        if git ls-files | grep -q "\.env$"; then
+          echo "::error file=workflow::.env files detected in the repository. Please remove them before pushing."
+          exit 1
+        else
+          echo "No .env files found. Check passed."
+        fi
