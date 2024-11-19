@@ -21,3 +21,4 @@ jobs:
           exit 1
         else
           echo "No .env files found. Check passed."
+        fi
