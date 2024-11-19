@@ -3,10 +3,7 @@ name: Check for .env Files
 on:
   push:
     branches:
-      - '**' # Triggers on all branches
-  pull_request:
-    branches:
-      - '**' # Triggers on all branches
+      - '**'
 
 jobs:
   check-env-files:
@@ -24,4 +21,3 @@ jobs:
           exit 1
         else
           echo "No .env files found. Check passed."
-        fi
