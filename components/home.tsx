@@ -4,6 +4,7 @@ import axios from 'axios';
 import pluralize from 'pluralize';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
+import { MongoClient } from 'mongodb'
 
 export default function RecipeGenerator() {
   const [ingredients, setIngredients] = useState('');
@@ -108,7 +109,7 @@ export default function RecipeGenerator() {
             Promise.all(nutritionPromises),
           ]);
   
-          const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
+          const detailedRecipes = recipeDetailsResponses.map((res: any, index: any) => ({
             ...res.data,
             nutrition: nutritionResponses[index].data,
           }));
@@ -118,7 +119,7 @@ export default function RecipeGenerator() {
               const genAI = new GoogleGenerativeAI(geminiKey!);
               const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
               
-              const prompt = `Please rewrite the following recipe instructions to make them clearer, detailed, and easier to follow. Make each instruction strictly its own line. Number each line. IMPORTANT: Don't write anything else other than the instructions: ${recipe.instructions}`;
+              const prompt = `Please rewrite the following recipe instructions to make them clearer, detailed, numbered, and easier to follow. Make each instruction strictly its own line. Number each line. IMPORTANT: Don't write anything else other than the instructions: ${recipe.instructions}`;
               
               const result = await model.generateContent(prompt);
               const response = await result.response;
@@ -152,7 +153,17 @@ export default function RecipeGenerator() {
         setLoading(false);
       }
     };
-
+  
+    const handleSaveRecipe = async (recipe: any) => {
+      try {
+        const response = await axios.post('/api/saveRecipe', recipe);
+        alert(response.data.message);
+      } catch (err) {
+        console.error('Error saving recipe:', err);
+        alert('Failed to save recipe.');
+      }
+    };
+    
   const handleNewRecipe = () => {
     setIngredients('');
     setRecipes([]);
@@ -305,18 +316,10 @@ export default function RecipeGenerator() {
                     }}
                   />
                   <button
-                    onClick={async () => {
-                      try {
-                        const response = await axios.post('/api/saveRecipe', recipe);
-                        alert(response.data.message);
-                      } catch (error) {
-                        console.error(error);
-                        alert('Failed to save recipe.');
-                      }
-                    }}
-                    style={styles.saveButton}
+                  onClick={() => handleSaveRecipe(recipe)}
+                  style={styles.saveButton}
                   >
-                    Save Recipe
+                    Save and Edit Recipe With Gemini
                   </button>
                 </li>
               ))}
