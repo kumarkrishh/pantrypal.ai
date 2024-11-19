@@ -336,26 +336,63 @@
 //   };
   
 'use client';
-
 import { useState } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
 
-
-
 export default function RecipeGenerator() {
-    const [ingredients, setIngredients] = useState('');
-    const [recipes, setRecipes] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
-    const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
-    const [numRecipes, setNumRecipes] = useState(1);
-    
-    const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
-    const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const [ingredients, setIngredients] = useState('');
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
+  const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
+  const [numRecipes, setNumRecipes] = useState(1);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
+  const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+  const fileToGenerativePart = async (file: File) => {
+    const buffer = await file.arrayBuffer();
+    return {
+      inlineData: {
+        data: Buffer.from(buffer).toString('base64'),
+        mimeType: file.type
+      }
+    };
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      
+      try {
+        setLoading(true);
+        const genAI = new GoogleGenerativeAI(geminiKey!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        const imagePart = await fileToGenerativePart(file);
+        const prompt = "List all the ingredients you can see in this image. Return them as a comma-separated list.";
+        
+        const result = await model.generateContent([prompt, imagePart]);
+        const response = await result.response;
+        const text = response.text();
+        
+        setIngredients(text);
+      } catch (err) {
+        setError('Error processing image');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
   
     const parseIngredientsWithGemini = async (text: string) => {
       const genAI = new GoogleGenerativeAI(geminiKey!);
@@ -450,13 +487,34 @@ export default function RecipeGenerator() {
   return (
     <div style={styles.container}>
       <h2>Pantry Pal</h2>
-     
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
+        {/* Image upload section */}
+        <div style={styles.imageUploadContainer}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={isRecipeGenerated}
+            style={styles.fileInput}
+          />
+          {imagePreview && (
+            <div style={styles.imagePreviewContainer}>
+              <Image
+                src={imagePreview}
+                alt="Uploaded ingredients"
+                width={200}
+                height={200}
+                style={styles.imagePreview}
+              />
+            </div>
+          )}
+        </div>
+
         <input
           type="text"
           value={ingredients}
           onChange={(e) => setIngredients(e.target.value)}
-          placeholder="Enter ingredients (comma separated)"
+          placeholder="Enter ingredients (comma separated) or upload an image"
           style={styles.input}
           disabled={isRecipeGenerated}
         />
@@ -694,5 +752,21 @@ const styles = {
       border: 'none',
       borderRadius: '5px',
       cursor: 'pointer',
+    },
+    imageUploadContainer: {
+      marginBottom: '20px',
+    },
+    fileInput: {
+      marginBottom: '10px',
+    },
+    imagePreviewContainer: {
+      maxWidth: '200px',
+      marginTop: '10px',
+    },
+    imagePreview: {
+      width: '100%',
+      height: 'auto',
+      objectFit: 'cover' as const,
+      borderRadius: '8px',
     },
 };
