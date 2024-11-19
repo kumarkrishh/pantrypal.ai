@@ -432,8 +432,9 @@ export default function RecipeGenerator() {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Pantry Pal</h2>
-      <div style={styles.inputContainer}>
+      <h2>Pantry Pal</h2>
+     
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
         <input
           type="text"
           value={ingredients}
@@ -498,11 +499,11 @@ export default function RecipeGenerator() {
       </div>
 
       {/* Show error if no recipes found */}
-      {error && <p style={styles.error}>{error}</p>}
+      {error}
 
       <div style={styles.recipesContainer}>
         {recipes.length > 0 && (
-          <div style={styles.recipeList}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
             <ul style={styles.recipeListContainer}>
               {recipes.map((recipe) => (
                 <li key={recipe.id} style={styles.recipeCard}>
