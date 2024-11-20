@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import Link from 'next/link';
 
 const Navbar = () => {
@@ -24,7 +24,7 @@ const Navbar = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: CSSProperties } = {
   navbar: {
     backgroundColor: '#f8f9fa', 
     padding: '0.5rem 1rem', 

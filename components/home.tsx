@@ -5,6 +5,7 @@ import pluralize from 'pluralize';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
 import Navbar from './ui/navbar';
+import React from 'react';
 
 export default function RecipeGenerator() {
   const [ingredients, setIngredients] = useState('');
