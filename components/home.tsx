@@ -4,8 +4,9 @@ import axios from 'axios';
 import pluralize from 'pluralize';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
-import Navbar from './ui/navbar';
+import Navbar from './Navbar';
 import React from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function RecipeGenerator() {
   const [ingredients, setIngredients] = useState('');
@@ -149,6 +150,8 @@ export default function RecipeGenerator() {
     pluralize.plural(ingredient),
   ]);
 
+  const { data: session } = useSession();
+
   return (
     <div style={styles.container}>
       <Navbar />
@@ -288,13 +291,17 @@ export default function RecipeGenerator() {
                   />
                   <button
                     onClick={async () => {
-                      try {
+                        if (!session) {
+                        alert('You need to be logged in to save recipes.');
+                        return;
+                        }
+                        try {
                         const response = await axios.post('/api/saveRecipe', recipe);
                         alert(response.data.message);
-                      } catch (error) {
+                        } catch (error) {
                         console.error(error);
                         alert('Failed to save recipe.');
-                      }
+                        }
                     }}
                     style={styles.saveButton}
                   >
