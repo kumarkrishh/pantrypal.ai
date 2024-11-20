@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRecipe extends Document {
+  _id: string; 
   title: string;
   image: string;
   readyInMinutes: number;
