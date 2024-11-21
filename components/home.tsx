@@ -22,9 +22,12 @@ export default function RecipeGenerator() {
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
   const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-
-  const openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
-
+let openai: OpenAI;
+if (openaiKey) {
+  openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
+} else {
+  console.warn('OpenAI API key not found. Some features may not work.');
+}
 
   const fileToGenerativePart = async (file: File) => {
     const buffer = await file.arrayBuffer();
