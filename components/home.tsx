@@ -6,6 +6,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import Image from 'next/image';
 import Navbar from './ui/navbar';
 import React from 'react';
+import OpenAI from 'openai';
+
 
 export default function RecipeGenerator() {
   const [ingredients, setIngredients] = useState('');
@@ -19,7 +21,10 @@ export default function RecipeGenerator() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
-  const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+
+  const openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
+
 
   const fileToGenerativePart = async (file: File) => {
     const buffer = await file.arrayBuffer();
@@ -36,55 +41,75 @@ export default function RecipeGenerator() {
     if (file) {
       setSelectedImage(file);
       setImagePreview(URL.createObjectURL(file));
-      
       try {
         setLoading(true);
-        const genAI = new GoogleGenerativeAI(geminiKey!);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        const imagePart = await fileToGenerativePart(file);
-        const prompt = "List all the ingredients you can see in this image. Return them as a comma-separated list.";
-        
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        const text = response.text();
-        
-        setIngredients(text);
+        const base64Image = await fileToBase64(file);
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "List all the ingredients you can see in this image. Return them as a comma-separated list." },
+                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+              ],
+            },
+          ],
+        });
+        setIngredients(response.choices[0].message.content || '');
       } catch (err) {
-        setError('Error processing image');
+        if (err instanceof Error) {
+          setError(`Error processing image: ${err.message}`);
+        } else {
+          setError('An unknown error occurred while processing the image');
+        }
         console.error(err);
       } finally {
         setLoading(false);
       }
     }
   };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result.split(',')[1]);
+        } else {
+          reject(new Error('Failed to convert file to base64'));
+        }
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
   
-    const parseIngredientsWithGemini = async (text: string) => {
-      const genAI = new GoogleGenerativeAI(geminiKey!);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      
-      const prompt = `Parse this text into a comma-separated list of ingredients: ${text}`;
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text().split(',').map(i => i.trim());
-    }
+  const parseIngredientsWithOpenAI = async (text: string) => {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a helpful assistant that parses ingredient lists." },
+        { role: "user", content: `Parse this text into a comma-separated list of ingredients: ${text}` }
+      ],
+    });
+    return response.choices[0].message.content?.split(',').map(i => i.trim()) || [];
+  };
   
-    const handleGenerateRecipe = async () => {
-      setLoading(true);
-      setError('');
-      setRecipes([]);
-      
-      try {
-        const parsedIngredients = await parseIngredientsWithGemini(ingredients);
-        
-        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-          params: {
-            ingredients: parsedIngredients.join(','),
-            number: numRecipes,
-            ranking: 1,
-            apiKey: apiKey,
-          },
-        });
+  const handleGenerateRecipe = async () => {
+    setLoading(true);
+    setError('');
+    setRecipes([]);
+    try {
+      const parsedIngredients = await parseIngredientsWithOpenAI(ingredients);
+      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+        params: {
+          ingredients: parsedIngredients.join(','),
+          number: numRecipes,
+          ranking: 1,
+          apiKey: apiKey,
+        },
+      });
         
         const availableRecipes = response.data.length;
         const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display

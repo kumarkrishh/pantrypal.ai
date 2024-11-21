@@ -64,6 +64,7 @@
     "next": "^13.5.7",
     "next-auth": "^4.24.7",
     "next-themes": "^0.3.0",
+    "openai": "^4.73.0",
     "pluralize": "^8.0.0",
     "postcss": "8.4.30",
     "react": "18.2.0",
