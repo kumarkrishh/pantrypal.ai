@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import clientPromise from '@/lib/mongodb';
-import Recipe from '@/models/Recipe';
+import { getClientPromise } from '@/lib/mongodb';
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -13,19 +12,23 @@ export async function POST(request: Request) {
 
   try {
     const recipeData = await request.json();
-    const client = await clientPromise;
+    const client = await getClientPromise();
     const db = client.db();
 
-    const newRecipe = new Recipe({
+    await db.collection('recipes').insertOne({
       ...recipeData,
       userId: session.user.id,
     });
 
-    await db.collection('recipes').insertOne(newRecipe);
-
-    return NextResponse.json({ message: 'Recipe saved successfully!' }, { status: 200 });
+    return NextResponse.json(
+      { message: 'Recipe saved successfully!' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error saving recipe:', error);
-    return NextResponse.json({ error: 'Failed to save recipe' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to save recipe' },
+      { status: 500 }
+    );
   }
 }

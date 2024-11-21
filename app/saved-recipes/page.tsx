@@ -7,61 +7,32 @@ import Image from "next/image";
 import Navbar from '../../components/Navbar';
 import { IRecipe } from '@/models/Recipe'; 
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-  },
-  pageTitle: {
-    textAlign: 'center' as 'center', 
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-  },
-  recipeCard: {
-    width: '100%',
-    maxWidth: '600px',
-    padding: '20px',
-    marginBottom: '20px',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-  },
-  imageContainer: {
-    width: '100%',
-    height: 'auto',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  section: {
-    marginBottom: '20px',
-  },
-  sectionTitle: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-  },
-  list: {
-    listStyleType: 'disc',
-    paddingLeft: '20px',
-  },
-  instructions: {
-    whiteSpace: 'pre-line',
-  },
-  recipeName: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    marginTop: '10px',
-    marginBottom: '10px',
-    textAlign: 'center' as 'center',
-  },
-};
-
 function SavedRecipesPage() {
   const { data: session, status } = useSession();
   const [recipes, setRecipes] = useState<IRecipe[]>([]);
+
+  const handleDelete = async (recipeId: string) => {
+    if (!session) {
+      alert('You need to be logged in to delete recipes.');
+      return;
+    }
+
+    try {
+      const response = await axios.delete('/api/deleteRecipe', {
+        data: { recipeId },
+      });
+      if (response.status === 200) {
+        // Remove the deleted recipe from the state
+        setRecipes(recipes.filter((recipe) => recipe._id !== recipeId));
+        alert('Recipe deleted successfully!');
+      } else {
+        alert('Failed to delete recipe.');
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      alert('Failed to delete recipe.');
+    }
+  };
 
   useEffect(() => {
     if (session) {
@@ -124,6 +95,13 @@ function SavedRecipesPage() {
                 <p style={styles.instructions}>{recipe.instructions}</p>
               </div>
             )}
+            {/* Delete Button */}
+            <button
+              style={styles.deleteButton}
+              onClick={() => handleDelete(recipe._id)}
+            >
+              Delete Recipe
+            </button>
           </div>
         ))
       ) : (
@@ -132,5 +110,66 @@ function SavedRecipesPage() {
     </div>
   );
 }
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '20px',
+  },
+  pageTitle: {
+    textAlign: 'center' as 'center', 
+    fontSize: '2rem',
+    fontWeight: 'bold',
+    marginBottom: '20px',
+  },
+  recipeCard: {
+    width: '100%',
+    maxWidth: '600px',
+    padding: '20px',
+    marginBottom: '20px',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 'auto',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  section: {
+    marginBottom: '20px',
+  },
+  sectionTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '10px',
+  },
+  list: {
+    listStyleType: 'disc',
+    paddingLeft: '20px',
+  },
+  instructions: {
+    whiteSpace: 'pre-line',
+  },
+  recipeName: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginTop: '10px',
+    marginBottom: '10px',
+    textAlign: 'center' as 'center',
+  },
+  deleteButton: {
+    backgroundColor: '#ff4d4d',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 15px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginTop: '10px',
+  },
+};
 
 export default SavedRecipesPage;
