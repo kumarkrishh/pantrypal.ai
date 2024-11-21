@@ -1,43 +1,36 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+// lib/mongodb.ts
+import { MongoClient } from 'mongodb';
 
-// Add this type declaration at the top of the file
+let client: MongoClient | null = null;
+let clientPromise: Promise<MongoClient> | null = null;
+
 declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  // eslint-disable-next-line no-var
+  var _mongoClientPromise: Promise<MongoClient> | null;
 }
 
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  throw new Error('Please add your Mongo URI to .env');
-}
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
+export function getClientPromise(): Promise<MongoClient> {
+  if (clientPromise) {
+    return clientPromise;
   }
-});
 
-let clientPromise: Promise<MongoClient>;
+  if (!process.env.MONGODB_URI) {
+    throw new Error('Please add your Mongo URI to .env.local');
+  }
 
-if (!global._mongoClientPromise) {
-  global._mongoClientPromise = client.connect().catch(err => {
-    console.error('Failed to connect to MongoDB', err);
-    throw err;
-  });
+  const uri = process.env.MONGODB_URI;
+  const options = {};
+
+  if (process.env.NODE_ENV === 'development') {
+    if (!global._mongoClientPromise) {
+      client = new MongoClient(uri, options);
+      global._mongoClientPromise = client.connect();
+    }
+    clientPromise = global._mongoClientPromise;
+  } else {
+    client = new MongoClient(uri, options);
+    clientPromise = client.connect();
+  }
+
+  return clientPromise;
 }
-clientPromise = global._mongoClientPromise;
-
-async function connectToDatabase() {
-  const client = await clientPromise;
-  return client.db('recipeApp');
-}
-
-async function insertRecipe(recipe: any) {
-  const db = await connectToDatabase();
-  const collection = db.collection('recipes');
-  const result = await collection.insertOne(recipe);
-  return result;
-}
-
-export { connectToDatabase, insertRecipe };
