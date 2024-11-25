@@ -71,24 +71,35 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isFavorited, onFavorite
         <div style={styles.section}>
           <h5 style={styles.sectionHeader}>Ingredients:</h5>
           <ul style={styles.ingredientsList}>
-            {recipe.extendedIngredients.map((ingredient: any, index: number) => {
-              const isInputIngredient = ingredientVariants.some((variant) =>
-                ingredient.name.toLowerCase().includes(variant)
-              );
-              return (
-                <li
-                  key={`${recipe.id}-${ingredient.id}-${index}`}
-                  style={{
-                    color: isInputIngredient ? 'green' : 'red',
-                  }}
-                >
-                  {ingredient.original}
-                </li>
-              );
-            })}
+            {recipe.extendedIngredients
+              .sort((a: any, b: any) => {
+                const isAInputIngredient = ingredientVariants.some((variant) =>
+                  a.name.toLowerCase().includes(variant)
+                );
+                const isBInputIngredient = ingredientVariants.some((variant) =>
+                  b.name.toLowerCase().includes(variant)
+                );
+                return Number(isAInputIngredient) - Number(isBInputIngredient);
+              })
+              .map((ingredient: any, index: number) => {
+                const isInputIngredient = ingredientVariants.some((variant) =>
+                  ingredient.name.toLowerCase().includes(variant)
+                );
+                return (
+                  <li
+                    key={`${recipe.id}-${ingredient.id}-${index}`}
+                    style={{
+                      color: isInputIngredient ? 'green' : 'red',
+                    }}
+                  >
+                    {ingredient.original}
+                  </li>
+                );
+              })}
           </ul>
         </div>
       )}
+
 
       {/* Instructions */}
       {recipe.instructions && (
