@@ -19,7 +19,7 @@ const Navbar = () => {
           <Link href="/contact" style={styles.navLink}>Contact</Link>
         </li>
         <li style={styles.navItem}>
-          <Link href="/saved-recipes" style={styles.navLink}>Saved</Link>
+          <Link href="/saved-recipes" style={styles.navLink}>Favorites</Link>
         </li>
         <li style={styles.navItem}>
           {session ? (

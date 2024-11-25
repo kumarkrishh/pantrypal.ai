@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -8,8 +8,11 @@ import Navbar from './Navbar';
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import OpenAI from 'openai';
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai"; 
+import RecipeCard from './RecipeCard';
 
 export default function RecipeGenerator() {
+  const { data: session, status } = useSession();
   const [ingredients, setIngredients] = useState('');
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,15 +22,28 @@ export default function RecipeGenerator() {
   const [numRecipes, setNumRecipes] = useState(1);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
   const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-let openai: OpenAI;
-if (openaiKey) {
-  openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
-} else {
-  console.warn('OpenAI API key not found. Some features may not work.');
-}
+  let openai: OpenAI;
+  if (openaiKey) {
+    openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
+  } else {
+    console.warn('OpenAI API key not found. Some features may not work.');
+  }
+
+  useEffect(() => {
+    if (session) {
+      axios
+        .get("/api/getSavedRecipes")
+        .then((res) => {
+          const savedRecipeIds = res.data.map((recipe: any) => recipe.id); 
+          setFavoritedRecipes(new Set(savedRecipeIds));
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [session]);
 
   const fileToGenerativePart = async (file: File) => {
     const buffer = await file.arrayBuffer();
@@ -60,7 +76,7 @@ if (openaiKey) {
           ],
         });
         setIngredients(response.choices[0].message.content || '');
-      } catch (err) {
+      } catch (err: any) {
         if (err instanceof Error) {
           setError(`Error processing image: ${err.message}`);
         } else {
@@ -177,7 +193,49 @@ if (openaiKey) {
     pluralize.plural(ingredient),
   ]);
 
-  const { data: session } = useSession();
+  const handleFavoriteToggle = async (recipe: any) => {
+    if (!session) {
+      alert('You need to be logged in to manage favorites.');
+      return;
+    }
+
+    if (favoritedRecipes.has(recipe.id)) {
+      // Implement unfavorite functionality: fix here
+      const confirmUnfavorite = confirm('Are you sure you want to remove this recipe from your favorites?');
+      if (!confirmUnfavorite) return;
+
+      try {
+        const response = await axios.delete('/api/deleteRecipe', { data: { recipeId: recipe.id } });
+        if (response.status === 200) {
+          const updatedFavorites = new Set(favoritedRecipes);
+          updatedFavorites.delete(recipe.id);
+          setFavoritedRecipes(updatedFavorites);
+          alert('Recipe removed from favorites.');
+        } else {
+          alert('Failed to remove recipe from favorites.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Failed to remove recipe from favorites.');
+      }
+    } else {
+      // Implement favorite functionality
+      try {
+        const response = await axios.post('/api/saveRecipe', recipe);
+        if (response.status === 200) {
+          const updatedFavorites = new Set(favoritedRecipes);
+          updatedFavorites.add(recipe.id);
+          setFavoritedRecipes(updatedFavorites);
+          alert('Recipe saved as favorite!');
+        } else {
+          alert('Failed to save recipe.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Failed to save recipe.');
+      }
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -270,71 +328,20 @@ if (openaiKey) {
       </div>
 
       {/* Show error if no recipes found */}
-      {error}
+      {error && <p style={styles.error}>{error}</p>}
 
       <div style={styles.recipesContainer}>
         {recipes.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
             <ul style={styles.recipeListContainer}>
               {recipes.map((recipe) => (
-                <li key={recipe.id} style={styles.recipeCard}>
-                  <h4 style={styles.recipeTitle}>{recipe.title}</h4>
-                  <Image
-                    src={recipe.image}
-                    alt={recipe.title}
-                    width={600}
-                    height={200}
-                  />
-                  <p>Preparation time: {recipe.readyInMinutes} minutes</p>
-                  <p>Serves: {recipe.servings} people</p>
-                  <h5 style={styles.sectionHeader}>Nutrition Facts:</h5>
-                  <p>Calories: {recipe.nutrition.calories}</p>
-                  <p>Carbohydrates: {recipe.nutrition.carbs}</p>
-                  <p>Protein: {recipe.nutrition.protein}</p>
-                  <p>Fat: {recipe.nutrition.fat}</p>
-                  <h5 style={styles.sectionHeader}>Ingredients:</h5>
-                  <ul style={styles.ingredientsList}>
-                    {recipe.extendedIngredients.map((ingredient: any, index: number) => {
-                      const isInputIngredient = ingredientVariants.some((variant) =>
-                        ingredient.name.toLowerCase().includes(variant)
-                      );
-                      return (
-                        <li
-                          key={`${recipe.id}-${ingredient.id}-${index}`}
-                          style={{
-                            color: isInputIngredient ? 'green' : 'red',
-                          }}
-                        >
-                          {ingredient.original}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <h5 style={styles.sectionHeader}>Instructions:</h5>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: recipe.instructions,
-                    }}
-                  />
-                  <button
-                    onClick={async () => {
-                        if (!session) {
-                        alert('You need to be logged in to save recipes.');
-                        return;
-                        }
-                        try {
-                        const response = await axios.post('/api/saveRecipe', recipe);
-                        alert(response.data.message);
-                        } catch (error) {
-                        console.error(error);
-                        alert('Failed to save recipe.');
-                        }
-                    }}
-                    style={styles.saveButton}
-                  >
-                    Save Recipe
-                  </button>
-                </li>
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  isFavorited={favoritedRecipes.has(recipe.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  ingredientVariants={ingredientVariants}
+                />
               ))}
             </ul>
           </div>
@@ -344,129 +351,147 @@ if (openaiKey) {
   );
 }
 
-const styles = {
-    container: {
-      padding: '20px',
-      maxWidth: '800px',
-      margin: '0 auto',
-      fontFamily: 'Arial, sans-serif',
-    },
-    title: {
-      textAlign: 'center',
-      fontSize: '24px',
-      fontWeight: 'bold',
-    },
-    inputContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px',
-    },
-    input: {
-      width: '100%',
-      padding: '10px',
-      border: '1px solid #ccc',
-      borderRadius: '5px',
-    },
-    sliderContainer: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-    },
-    sliderLabel: {
-      fontSize: '16px',
-    },
-    slider: {
-      width: '150px',
-    },
-    button: {
-      padding: '10px 20px',
-      backgroundColor: '#0070f3',
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      cursor: 'pointer',
-    },
-    buttonDisabled: {
-      padding: '10px 20px',
-      backgroundColor: '#ccc',
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      cursor: 'not-allowed',
-    },
-    resetButton: {
-      padding: '10px 20px',
-      backgroundColor: '#ff4d4f',
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      cursor: 'pointer',
-    },
-    error: {
-      color: 'red',
-      textAlign: 'center',
-    },
-    recipesContainer: {
-      marginTop: '20px',
-    },
-    recipeList: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-    },
-    recipeListContainer: {
-      listStyle: 'none',
-      padding: '0',
-    },
-    recipeCard: {
-      padding: '20px',
-      border: '1px solid #ccc',
-      borderRadius: '10px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      backgroundColor: 'white',
-    },
-    recipeTitle: {
-      fontSize: '18px',
-      fontWeight: 'bold',
-      marginBottom: '10px',
-    },
-    recipeImage: {
-      width: '100%',
-      height: 'auto',
-      borderRadius: '8px',
-      objectFit: 'cover',
-    },
-    sectionHeader: {
-      fontSize: '16px',
-      fontWeight: 'bold',
-      marginTop: '10px',
-    },
-    ingredientsList: {
-      listStyle: 'disc',
-      paddingLeft: '20px',
-    },
-    saveButton: {
-      padding: '10px 20px',
-      backgroundColor: '#28a745',
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      cursor: 'pointer',
-    },
-    imageUploadContainer: {
-      marginBottom: '20px',
-    },
-    fileInput: {
-      marginBottom: '10px',
-    },
-    imagePreviewContainer: {
-      maxWidth: '200px',
-      marginTop: '10px',
-    },
-    imagePreview: {
-      width: '100%',
-      height: 'auto',
-      objectFit: 'cover' as const,
-      borderRadius: '8px',
-    },
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    padding: '20px',
+    maxWidth: '800px',
+    margin: '0 auto',
+    fontFamily: 'Arial, sans-serif',
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: '24px',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+  },
+  sliderContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  sliderLabel: {
+    fontSize: '16px',
+  },
+  slider: {
+    width: '150px',
+  },
+  button: {
+    padding: '10px 20px',
+    backgroundColor: '#0070f3',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  buttonDisabled: {
+    padding: '10px 20px',
+    backgroundColor: '#ccc',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'not-allowed',
+  },
+  resetButton: {
+    padding: '10px 20px',
+    backgroundColor: '#ff4d4f',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  error: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: '10px',
+  },
+  recipesContainer: {
+    marginTop: '20px',
+  },
+  recipeList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+  },
+  recipeListContainer: {
+    listStyle: 'none',
+    padding: '0',
+  },
+  recipeCard: {
+    padding: '20px',
+    border: '1px solid #ccc',
+    borderRadius: '10px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    backgroundColor: 'white',
+    position: 'relative', 
+  },
+  recipeTitle: {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    marginBottom: '10px',
+    textAlign: 'center' as 'center',
+  },
+  recipeImage: {
+    width: '100%',
+    height: 'auto',
+    borderRadius: '8px',
+    objectFit: 'cover' as const,
+  },
+  sectionHeader: {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    marginTop: '10px',
+  },
+  ingredientsList: {
+    listStyle: 'disc',
+    paddingLeft: '20px',
+  },
+  saveButton: {
+    padding: '10px 20px',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginTop: '10px',
+  },
+  imageUploadContainer: {
+    marginBottom: '20px',
+  },
+  fileInput: {
+    marginBottom: '10px',
+  },
+  imagePreviewContainer: {
+    maxWidth: '200px',
+    marginTop: '10px',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 'auto',
+    objectFit: 'cover' as const,
+    borderRadius: '8px',
+  },
+  heartIcon: {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    cursor: 'pointer',
+    transition: 'transform 0.2s, color 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageWrapper: {
+    position: 'relative',
+    display: 'inline-block',
+  },
 };
