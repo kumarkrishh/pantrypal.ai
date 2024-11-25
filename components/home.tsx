@@ -88,7 +88,7 @@ export default function RecipeGenerator() {
       } finally {
         //setSelectedImage(null);
         setImagePreview(null);
-        //e.target.value = ''; // Reset the input value
+        e.target.value = ''; // Reset the input value
         setLoading(false);
       }
     }
@@ -121,6 +121,9 @@ export default function RecipeGenerator() {
   };
   
   const handleGenerateRecipe = async () => {
+    if (!ingredients.trim()) {
+      alert('No ingredients detected. Please provide some ingredients to generate a recipe.');
+    }
     setLoading(true);
     setError('');
     setRecipes([]);
@@ -544,4 +547,3 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'inline-block',
   },
 };
-
