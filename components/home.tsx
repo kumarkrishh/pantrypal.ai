@@ -1,3 +1,5 @@
+
+
 'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -69,7 +71,7 @@ export default function RecipeGenerator() {
             {
               role: "user",
               content: [
-                { type: "text", text: "List all the ingredients you can see in this image. Return them as a comma-separated list." },
+                { type: "text", text: "List all the ingredients you can see in this image. Return them as a comma-separated list. If you don't see any food ingredients, return an empty list." },
                 { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
               ],
             },
@@ -84,6 +86,9 @@ export default function RecipeGenerator() {
         }
         console.error(err);
       } finally {
+        //setSelectedImage(null);
+        setImagePreview(null);
+        //e.target.value = ''; // Reset the input value
         setLoading(false);
       }
     }
@@ -133,9 +138,7 @@ export default function RecipeGenerator() {
         const availableRecipes = response.data.length;
         const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
   
-        if (availableRecipes === 0) {
-          setError('No recipes found with the given ingredients. Please try generating a new recipe.');
-        } else {
+        if(availableRecipes > 0){
           const recipeDetailsPromises = response.data.map((recipe: any) =>
             axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
               params: { apiKey: apiKey },
@@ -170,6 +173,8 @@ export default function RecipeGenerator() {
   
           setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
           setIsRecipeGenerated(true);
+        }else{
+            alert('No recipes found with the given ingredients. Please try generating a new recipe.'); 
         }
       } catch (err) {
         setError('An error occurred while fetching the recipes.');
@@ -182,6 +187,8 @@ export default function RecipeGenerator() {
     setIngredients('');
     setRecipes([]);
     setError('');
+    setImagePreview(null)
+    setSelectedImage(null)
     setIsRecipeGenerated(false);
   };
 
@@ -312,12 +319,12 @@ export default function RecipeGenerator() {
             disabled={loading || isRecipeGenerated}
             style={loading ? styles.buttonDisabled : styles.button}
           >
-            {loading ? 'Generating...' : 'Generate Recipe'}
+            {loading ? (imagePreview ? 'Analyzing Image...' : 'Generating Recipe...') : 'Generate Recipe'}
           </button>
         )}
 
         {/* Show New Recipe button after generating a recipe */}
-        {isRecipeGenerated && (
+        {!error && isRecipeGenerated && (
           <button
             onClick={handleNewRecipe}
             style={styles.resetButton}
@@ -327,8 +334,16 @@ export default function RecipeGenerator() {
         )}
       </div>
 
-      {/* Show error if no recipes found */}
-      {error && <p style={styles.error}>{error}</p>}
+      {/* Show error message if no recipes are found */}
+      {error && !isRecipeGenerated && (
+      <div style={styles.modal}>
+        <div style={styles.modalContent}>
+          <p>No recipes were found.</p>
+          <button onClick={() => setError('')} style={styles.closeButton}>Close</button>
+        </div>
+      </div>
+    )}
+
 
       <div style={styles.recipesContainer}>
         {recipes.length > 0 && (
@@ -352,6 +367,40 @@ export default function RecipeGenerator() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modal: {
+    backgroundColor: '#fff',
+    padding: '20px',
+    borderRadius: '8px',
+    textAlign: 'center',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+  },
+  closeButton: {
+    marginTop: '10px',
+    padding: '10px 20px',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    textAlign: 'center',
+  },
   container: {
     padding: '20px',
     maxWidth: '800px',
@@ -495,3 +544,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'inline-block',
   },
 };
+
