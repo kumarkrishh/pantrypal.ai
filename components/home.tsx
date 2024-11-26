@@ -1,20 +1,26 @@
-
-
 'use client';
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import pluralize from 'pluralize';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import Image from 'next/image';
-import Navbar from './Navbar';
-import React from 'react';
 import { useSession } from 'next-auth/react';
 import OpenAI from 'openai';
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai"; 
+import { Heart } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import RecipeCard from './RecipeCard';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import Navbar from './Navbar';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, ChefHat, Loader2, Utensils, Settings2 } from 'lucide-react';
 
 export default function RecipeGenerator() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [ingredients, setIngredients] = useState('');
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,33 +34,81 @@ export default function RecipeGenerator() {
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
   const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  let openai: OpenAI;
-  if (openaiKey) {
-    openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
-  } else {
-    console.warn('OpenAI API key not found. Some features may not work.');
-  }
+  const openai = openaiKey ? new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true }) : null;
 
   useEffect(() => {
     if (session) {
       axios
-        .get("/api/getSavedRecipes")
+        .get('/api/getSavedRecipes')
         .then((res) => {
-          const savedRecipeIds = res.data.map((recipe: any) => recipe.id); 
-          setFavoritedRecipes(new Set(savedRecipeIds));
+          setFavoritedRecipes(new Set(res.data.map((recipe: any) => recipe.id)));
         })
-        .catch((err) => console.error(err));
+        .catch(() => {
+          setError('Failed to fetch saved recipes');
+        });
     }
   }, [session]);
 
-  const fileToGenerativePart = async (file: File) => {
-    const buffer = await file.arrayBuffer();
-    return {
-      inlineData: {
-        data: Buffer.from(buffer).toString('base64'),
-        mimeType: file.type
+  const handleGenerateRecipe = async () => {
+    if (!ingredients.trim()) {
+      setError('Please enter ingredients or upload an image');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setRecipes([]);
+
+    try {
+      const parsedIngredients = ingredients.split(',').map((i) => i.trim());
+      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+        params: {
+          ingredients: parsedIngredients.join(','),
+          number: numRecipes,
+          ranking: 1,
+          apiKey: apiKey,
+        },
+      });
+
+      if (response.data.length === 0) {
+        setError('No recipes found. Try different ingredients or increase the number of additional ingredients');
+        return;
       }
-    };
+
+      const recipeDetails = await Promise.all(
+        response.data.map(async (recipe: any) => {
+          const [details, nutrition] = await Promise.all([
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+              params: { apiKey: apiKey },
+            }),
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+              params: { apiKey: apiKey },
+            }),
+          ]);
+          return { ...details.data, nutrition: nutrition.data };
+        })
+      );
+
+      setRecipes(recipeDetails);
+      setIsRecipeGenerated(true);
+    } catch (err) {
+      setError('Failed to fetch recipes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNewRecipe = () => {
+    setIngredients('');
+    setRecipes([]);
+    setError('');
+    setImagePreview(null);
+    setSelectedImage(null);
+    setIsRecipeGenerated(false);
+  };
+
+  const handleFavoriteToggle = async () => {
+    // Placeholder for favorite toggle logic
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,17 +116,29 @@ export default function RecipeGenerator() {
     if (file) {
       setSelectedImage(file);
       setImagePreview(URL.createObjectURL(file));
+
       try {
+        if (!openai) {
+          setError('OpenAI is not configured. Please check your API key.');
+          return;
+        }
+
         setLoading(true);
         const base64Image = await fileToBase64(file);
         const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: 'gpt-4o-mini',
           messages: [
             {
-              role: "user",
+              role: 'user',
               content: [
-                { type: "text", text: "List all the ingredients you can see in this image. Return them as a comma-separated list. If you don't see any food ingredients, return an empty list." },
-                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+                {
+                  type: 'text',
+                  text: 'List all the ingredients you can see in this image. Return them as a comma-separated list. If you don\'t see any food ingredients, return an empty list.',
+                },
+                {
+                  type: 'image_url',
+                  image_url: { url: `data:image/jpeg;base64,${base64Image}` },
+                },
               ],
             },
           ],
@@ -86,9 +152,7 @@ export default function RecipeGenerator() {
         }
         console.error(err);
       } finally {
-        //setSelectedImage(null);
         setImagePreview(null);
-        //e.target.value = ''; // Reset the input value
         setLoading(false);
       }
     }
@@ -105,443 +169,263 @@ export default function RecipeGenerator() {
           reject(new Error('Failed to convert file to base64'));
         }
       };
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   };
-  
+
   const parseIngredientsWithOpenAI = async (text: string) => {
+    if (!openai) {
+      setError('OpenAI is not configured. Please check your API key.');
+      return;
+    }
+
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: 'gpt-4o-mini',
       messages: [
-        { role: "system", content: "You are a helpful assistant that parses ingredient lists." },
-        { role: "user", content: `Parse this text into a comma-separated list of ingredients: ${text}` }
+        { role: 'system', content: 'You are a helpful assistant that parses ingredient lists.' },
+        { role: 'user', content: `Parse this text into a comma-separated list of ingredients: ${text}` },
       ],
     });
-    return response.choices[0].message.content?.split(',').map(i => i.trim()) || [];
-  };
-  
-  const handleGenerateRecipe = async () => {
-    setLoading(true);
-    setError('');
-    setRecipes([]);
-    try {
-      const parsedIngredients = await parseIngredientsWithOpenAI(ingredients);
-      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-        params: {
-          ingredients: parsedIngredients.join(','),
-          number: numRecipes,
-          ranking: 1,
-          apiKey: apiKey,
-        },
-      });
-        
-        const availableRecipes = response.data.length;
-        const recipesToShow = availableRecipes < numRecipes ? availableRecipes : numRecipes; // Adjust the number of recipes to display
-  
-        if(availableRecipes > 0){
-          const recipeDetailsPromises = response.data.map((recipe: any) =>
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-              params: { apiKey: apiKey },
-            })
-          );
-  
-          const nutritionPromises = response.data.map((recipe: any) =>
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-              params: { apiKey: apiKey },
-            })
-          );
-  
-          const [recipeDetailsResponses, nutritionResponses] = await Promise.all([
-            Promise.all(recipeDetailsPromises),
-            Promise.all(nutritionPromises),
-          ]);
-  
-          const detailedRecipes = recipeDetailsResponses.map((res, index) => ({
-            ...res.data,
-            nutrition: nutritionResponses[index].data,
-          }));
-  
-          const filteredRecipes = detailedRecipes.filter((recipe) => {
-            const additionalIngredients = recipe.extendedIngredients.filter((ingredient: any) => {
-              const isInputIngredient = ingredientVariants.some((variant) =>
-                ingredient.name.toLowerCase().includes(variant)
-              );
-              return !isInputIngredient;
-            });
-            return additionalIngredients.length <= maxAdditionalIngredients;
-          });
-  
-          setRecipes(filteredRecipes.slice(0, recipesToShow)); // Show only the adjusted number of recipes
-          setIsRecipeGenerated(true);
-        }else{
-            alert('No recipes found with the given ingredients. Please try generating a new recipe.'); 
-        }
-      } catch (err) {
-        setError('An error occurred while fetching the recipes.');
-      } finally {
-        setLoading(false);
-      }
-    };
 
-  const handleNewRecipe = () => {
-    setIngredients('');
-    setRecipes([]);
-    setError('');
-    setImagePreview(null)
-    setSelectedImage(null)
-    setIsRecipeGenerated(false);
+    return response.choices[0].message.content?.split(',').map((i) => i.trim()) || [];
   };
 
-  const inputIngredientsArray = ingredients
-    .split(',')
-    .map((ingredient) => ingredient.trim().toLowerCase());
+  const inputIngredientsArray = ingredients.split(',').map((ingredient) => ingredient.trim().toLowerCase());
   const ingredientVariants = inputIngredientsArray.flatMap((ingredient) => [
     pluralize.singular(ingredient),
     pluralize.plural(ingredient),
   ]);
 
-  const handleFavoriteToggle = async (recipe: any) => {
-    if (!session) {
-      alert('You need to be logged in to manage favorites.');
-      return;
-    }
-
-    if (favoritedRecipes.has(recipe.id)) {
-      // Implement unfavorite functionality: fix here
-      const confirmUnfavorite = confirm('Are you sure you want to remove this recipe from your favorites?');
-      if (!confirmUnfavorite) return;
-
-      try {
-        const response = await axios.delete('/api/deleteRecipe', { data: { recipeId: recipe.id } });
-        if (response.status === 200) {
-          const updatedFavorites = new Set(favoritedRecipes);
-          updatedFavorites.delete(recipe.id);
-          setFavoritedRecipes(updatedFavorites);
-          alert('Recipe removed from favorites.');
-        } else {
-          alert('Failed to remove recipe from favorites.');
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Failed to remove recipe from favorites.');
-      }
-    } else {
-      // Implement favorite functionality
-      try {
-        const response = await axios.post('/api/saveRecipe', recipe);
-        if (response.status === 200) {
-          const updatedFavorites = new Set(favoritedRecipes);
-          updatedFavorites.add(recipe.id);
-          setFavoritedRecipes(updatedFavorites);
-          alert('Recipe saved as favorite!');
-        } else {
-          alert('Failed to save recipe.');
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Failed to save recipe.');
-      }
-    }
-  };
-
   return (
-    <div style={styles.container}>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
-      <h2 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center' }}>Pantry Pal</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
-        {/* Image upload section */}
-        <div style={styles.imageUploadContainer}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={isRecipeGenerated}
-            style={styles.fileInput}
-          />
-          {imagePreview && (
-            <div style={styles.imagePreviewContainer}>
-              <Image
-                src={imagePreview}
-                alt="Uploaded ingredients"
-                width={200}
-                height={200}
-                style={styles.imagePreview}
-              />
-            </div>
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="p-1 text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Pantry Pal
+          </h1>
+          <p className="text-lg text-gray-600">Transform your ingredients into delicious meals</p>
+        </div>
+
+        <div className="max-w-[1400px] mx-auto">
+          <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
+            <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+              <CardTitle className="text-2xl font-semibold text-gray-800">Recipe Generator</CardTitle>
+              <CardDescription className="text-gray-600">
+                Let&apos;s turn your available ingredients into amazing recipes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <Tabs defaultValue="ingredients" className="space-y-6">
+                <TabsList className="grid grid-cols-2 gap-4 bg-indigo-50/50 p-1">
+                  <TabsTrigger 
+                    value="ingredients" 
+                    className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+                  >
+                    <Utensils className="h-4 w-4 mr-2" />
+                    Ingredients
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="preferences"
+                    className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+                  >
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Preferences
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="ingredients" className="space-y-6">
+                  <div className="grid gap-6">
+                    <div 
+                      className={cn(
+                        "rounded-xl border-2 border-dashed p-8 transition-all bg-gradient-to-br",
+                        "hover:border-indigo-300 hover:from-indigo-50/30 hover:to-purple-50/30",
+                        isRecipeGenerated 
+                          ? "border-gray-200 from-gray-50 to-gray-50/50" 
+                          : "border-indigo-200 from-white to-white"
+                      )}
+                    >
+                      <label 
+                        htmlFor="file-upload" 
+                        className="flex flex-col items-center justify-center cursor-pointer"
+                      >
+                        <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+                          <Upload className="h-8 w-8 text-indigo-600" />
+                        </div>
+                        <span className="text-base font-medium text-gray-700">
+                          {imagePreview ? 'Change image' : 'Upload ingredient image'}
+                        </span>
+                        <span className="text-sm text-gray-500 mt-1">
+                          Click or drag and drop
+                        </span>
+                      </label>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isRecipeGenerated}
+                        className="hidden"
+                      />
+                      {imagePreview && (
+                        <div className="mt-6 relative w-full aspect-video rounded-xl overflow-hidden shadow-lg">
+                          <Image
+                            src={imagePreview}
+                            alt="Uploaded ingredients"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium text-gray-700">Available Ingredients</Label>
+                      <Input
+                        value={ingredients}
+                        onChange={(e) => setIngredients(e.target.value)}
+                        placeholder="Enter ingredients (comma separated)"
+                        disabled={isRecipeGenerated}
+                        className="border-indigo-100 focus-visible:ring-indigo-600 h-12 text-base"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Add your available ingredients, separated by commas
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="preferences" className="space-y-8">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium text-gray-700">
+                        Maximum Additional Ingredients: {maxAdditionalIngredients}
+                      </Label>
+                      <Slider
+                        value={[maxAdditionalIngredients]}
+                        onValueChange={(value) => setMaxAdditionalIngredients(value[0])}
+                        min={0}
+                        max={10}
+                        step={1}
+                        disabled={isRecipeGenerated}
+                        className="py-4"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Limit the number of extra ingredients needed for recipes
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium text-gray-700">
+                        Number of Recipes: {numRecipes}
+                      </Label>
+                      <Slider
+                        value={[numRecipes]}
+                        onValueChange={(value) => setNumRecipes(value[0])}
+                        min={1}
+                        max={5}
+                        step={1}
+                        disabled={isRecipeGenerated}
+                        className="py-4"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Choose how many recipe suggestions you&apos;d like to receive
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="mt-8 pt-6 border-t border-indigo-50">
+                {!isRecipeGenerated ? (
+                  <Button
+                    onClick={handleGenerateRecipe}
+                    disabled={loading}
+                    className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Generating Recipes...
+                      </>
+                    ) : (
+                      <>
+                        <ChefHat className="mr-2 h-5 w-5" />
+                        Generate Recipes
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNewRecipe}
+                    variant="outline"
+                    className="w-full h-12 text-base border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-all"
+                  >
+                    Start New Recipe Search
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {error && (
+            <Alert variant="destructive" className="mb-8">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </div>
 
-        <input
-          type="text"
-          value={ingredients}
-          onChange={(e) => setIngredients(e.target.value)}
-          placeholder="Enter ingredients (comma separated) or upload an image"
-          style={styles.input}
-          disabled={isRecipeGenerated}
-        />
-        
-        {/* Slider for max additional ingredients */}
-        <div style={styles.sliderContainer}>
-          <label style={styles.sliderLabel}>Max Additional Ingredients</label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={maxAdditionalIngredients}
-            onChange={(e) =>
-              setMaxAdditionalIngredients(Math.abs(Number(e.target.value)))
-            }
-            disabled={isRecipeGenerated}
-            style={styles.slider}
-          />
-          <span>{maxAdditionalIngredients}</span>
-        </div>
-
-        {/* Slider for number of recipes */}
-        <div style={styles.sliderContainer}>
-          <label style={styles.sliderLabel}>Number of Recipes</label>
-          <input
-            type="range"
-            min="1"
-            max="5"
-            value={numRecipes}
-            onChange={(e) => setNumRecipes(Math.abs(Number(e.target.value)))}
-            disabled={isRecipeGenerated}
-            style={styles.slider}
-          />
-          <span>{numRecipes}</span>
-        </div>
-
-        {/* Show Generate Recipe button only if there are no errors or recipes generated */}
-        {!error && !isRecipeGenerated && (
-          <button
-            onClick={handleGenerateRecipe}
-            disabled={loading || isRecipeGenerated}
-            style={loading ? styles.buttonDisabled : styles.button}
-          >
-            {loading ? (imagePreview ? 'Analyzing Image...' : 'Generating Recipe...') : 'Generate Recipe'}
-          </button>
-        )}
-
-        {/* Show New Recipe button after generating a recipe */}
-        {!error && isRecipeGenerated && (
-          <button
-            onClick={handleNewRecipe}
-            style={styles.resetButton}
-          >
-            New Recipe
-          </button>
-        )}
-      </div>
-
-      {/* Show error message if no recipes are found */}
-      {error && !isRecipeGenerated && (
-      <div style={styles.modal}>
-        <div style={styles.modalContent}>
-          <p>No recipes were found.</p>
-          <button onClick={() => setError('')} style={styles.closeButton}>Close</button>
-        </div>
-      </div>
-    )}
-
-
-      <div style={styles.recipesContainer}>
-        {recipes.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' } as React.CSSProperties}>
-            <ul style={styles.recipeListContainer}>
-              {recipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  isFavorited={favoritedRecipes.has(recipe.id)}
-                  onFavoriteToggle={handleFavoriteToggle}
-                  ingredientVariants={ingredientVariants}
-                />
-              ))}
-            </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                isFavorited={favoritedRecipes.has(recipe.id)}
+                onFavoriteToggle={handleFavoriteToggle}
+                ingredientVariants={ingredientVariants}
+              />
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modal: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    textAlign: 'center',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  closeButton: {
-    marginTop: '10px',
-    padding: '10px 20px',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    textAlign: 'center',
-  },
-  container: {
-    padding: '20px',
-    maxWidth: '800px',
-    margin: '0 auto',
-    fontFamily: 'Arial, sans-serif',
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: '24px',
-    fontWeight: 'bold',
-  },
-  inputContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-  },
-  sliderContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  sliderLabel: {
-    fontSize: '16px',
-  },
-  slider: {
-    width: '150px',
-  },
-  button: {
-    padding: '10px 20px',
-    backgroundColor: '#0070f3',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-  buttonDisabled: {
-    padding: '10px 20px',
-    backgroundColor: '#ccc',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'not-allowed',
-  },
-  resetButton: {
-    padding: '10px 20px',
-    backgroundColor: '#ff4d4f',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
-  error: {
-    color: 'red',
-    textAlign: 'center',
-    marginTop: '10px',
-  },
-  recipesContainer: {
-    marginTop: '20px',
-  },
-  recipeList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  recipeListContainer: {
-    listStyle: 'none',
-    padding: '0',
-  },
-  recipeCard: {
-    padding: '20px',
-    border: '1px solid #ccc',
-    borderRadius: '10px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    backgroundColor: 'white',
-    position: 'relative', 
-  },
-  recipeTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    textAlign: 'center' as 'center',
-  },
-  recipeImage: {
-    width: '100%',
-    height: 'auto',
-    borderRadius: '8px',
-    objectFit: 'cover' as const,
-  },
-  sectionHeader: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginTop: '10px',
-  },
-  ingredientsList: {
-    listStyle: 'disc',
-    paddingLeft: '20px',
-  },
-  saveButton: {
-    padding: '10px 20px',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginTop: '10px',
-  },
   imageUploadContainer: {
-    marginBottom: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '2px dashed #0070f3',
+    borderRadius: '8px',
+    padding: '16px',
+    backgroundColor: '#f9f9f9',
+    cursor: 'pointer',
+    transition: 'border-color 0.3s, background-color 0.3s',
+    textAlign: 'center',
   },
   fileInput: {
-    marginBottom: '10px',
+    display: 'none',
+  },
+  imageUploadLabel: {
+    padding: '10px 20px',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
   },
   imagePreviewContainer: {
     maxWidth: '200px',
-    marginTop: '10px',
+    marginTop: '16px',
   },
   imagePreview: {
     width: '100%',
     height: 'auto',
-    objectFit: 'cover' as const,
     borderRadius: '8px',
-  },
-  heartIcon: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    cursor: 'pointer',
-    transition: 'transform 0.2s, color 0.2s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageWrapper: {
-    position: 'relative',
-    display: 'inline-block',
+    objectFit: 'cover',
   },
 };
-

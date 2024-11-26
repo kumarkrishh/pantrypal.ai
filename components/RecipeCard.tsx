@@ -1,168 +1,207 @@
-import React from 'react';
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 interface RecipeCardProps {
   recipe: any;
   isFavorited: boolean;
   onFavoriteToggle: (recipe: any) => void;
-  ingredientVariants: string[];
+  ingredientVariants?: string[];
 }
 
-const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isFavorited, onFavoriteToggle, ingredientVariants }) => {
-  if (!recipe) {
-    return null; 
-  }
+export default function RecipeCard({
+  recipe,
+  isFavorited,
+  onFavoriteToggle,
+  ingredientVariants = [],
+}: RecipeCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!recipe) return null;
+
   return (
-    <li key={recipe.id} style={styles.recipeCard}>
-      {/* Recipe Title */}
-      <h4 style={styles.recipeTitle}>{recipe.title}</h4>
-      
-      {/* Image Container with Heart Icon */}
-      <div style={styles.imageWrapper}>
-        {recipe.image && (
-          <Image
-            src={recipe.image}
-            alt={recipe.title}
-            width={600}
-            height={200}
-            style={styles.recipeImage}
-          />
-        )}
-        {/* Heart Icon */}
-        <div
-          style={styles.heartIcon}
+    <Card className="w-auto overflow-hidden transition-all hover:shadow-lg">
+      {/* Recipe Image and Favorite Button */}
+      <div className="relative aspect-video">
+        <Image
+          src={recipe.image}
+          alt={recipe.title}
+          fill
+          className="object-cover"
+          priority
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 bg-white/80 hover:bg-white/90 transition-colors"
           onClick={() => onFavoriteToggle(recipe)}
-          title={isFavorited ? "Favorited" : "Add to favorites"}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              onFavoriteToggle(recipe);
-            }
-          }}
-          aria-label={isFavorited ? "Favorited" : "Add to favorites"}
         >
-          {isFavorited ? (
-            <AiFillHeart color="red" size={24} />
-          ) : (
-            <AiOutlineHeart color="gray" size={24} />
-          )}
-        </div>
+          <Heart
+            className={cn(
+              'h-5 w-5 transition-colors',
+              isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-500'
+            )}
+          />
+        </Button>
       </div>
 
-      {/* Preparation Time and Servings */}
-      <p>Preparation time: {recipe.readyInMinutes} minutes</p>
-      <p>Serves: {recipe.servings} people</p>
+      {/* Recipe Title and Basic Info */}
+      <CardHeader>
+        <CardTitle className="text-xl">{recipe.title}</CardTitle>
+        <CardDescription className="flex items-center gap-2 text-sm">
+          <span>🕒 {recipe.readyInMinutes} mins</span>
+          <span>•</span>
+          <span>👥 Serves {recipe.servings}</span>
+        </CardDescription>
+        {recipe.diets?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {recipe.diets.slice(0, 2).map((diet: string) => (
+              <Badge key={diet} variant="secondary" className="capitalize">
+                {diet}
+              </Badge>
+            ))}
+            {recipe.diets.length > 2 && (
+              <Badge variant="secondary">+{recipe.diets.length - 2}</Badge>
+            )}
+          </div>
+        )}
+      </CardHeader>
 
-      {/* Nutrition Facts */}
-      {recipe.nutrition && (
-        <div style={styles.section}>
-          <h5 style={styles.sectionHeader}>Nutrition Facts:</h5>
-          <p>Calories: {recipe.nutrition.calories}</p>
-          <p>Carbohydrates: {recipe.nutrition.carbs}</p>
-          <p>Protein: {recipe.nutrition.protein}</p>
-          <p>Fat: {recipe.nutrition.fat}</p>
+      <CardContent className="space-y-4">
+        {/* Quick Nutrition Facts */}
+        <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+          {recipe.nutrition?.calories && (
+            <div>
+              <span className="text-muted-foreground">Calories: </span>
+              <span className="font-medium">{recipe.nutrition.calories}</span>
+            </div>
+          )}
+          {recipe.nutrition?.protein && (
+            <div>
+              <span className="text-muted-foreground">Protein: </span>
+              <span className="font-medium">{recipe.nutrition.protein}</span>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Ingredients */}
-      {recipe.extendedIngredients && recipe.extendedIngredients.length > 0 && (
-        <div style={styles.section}>
-          <h5 style={styles.sectionHeader}>Ingredients:</h5>
-          <ul style={styles.ingredientsList}>
-            {recipe.extendedIngredients
-              .sort((a: any, b: any) => {
-                const isAInputIngredient = ingredientVariants.some((variant) =>
-                  a.name.toLowerCase().includes(variant)
-                );
-                const isBInputIngredient = ingredientVariants.some((variant) =>
-                  b.name.toLowerCase().includes(variant)
-                );
-                return Number(isAInputIngredient) - Number(isBInputIngredient);
-              })
-              .map((ingredient: any, index: number) => {
-                const isInputIngredient = ingredientVariants.some((variant) =>
-                  ingredient.name.toLowerCase().includes(variant)
-                );
-                return (
-                  <li
-                    key={`${recipe.id}-${ingredient.id}-${index}`}
-                    style={{
-                      color: isInputIngredient ? 'green' : 'red',
-                    }}
-                  >
-                    {ingredient.original}
-                  </li>
-                );
-              })}
-          </ul>
-        </div>
-      )}
+        {/* Expand/Collapse Button */}
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <span className="flex items-center gap-2">
+            {isExpanded ? 'Show Less' : 'Show More'}
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </span>
+        </Button>
 
+        {/* Expanded Content */}
+        {isExpanded && (
+          <div className="space-y-4">
+            <Separator />
 
-      {/* Instructions */}
-      {recipe.instructions && (
-        <div style={styles.section}>
-          <h5 style={styles.sectionHeader}>Instructions:</h5>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: recipe.instructions,
-            }}
-          />
-        </div>
-      )}
-    </li>
+            {/* Detailed Nutrition */}
+            {recipe.nutrition && (
+              <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+                {recipe.nutrition.carbs && (
+                  <div>
+                    <span className="text-muted-foreground">Carbs: </span>
+                    <span className="font-medium">{recipe.nutrition.carbs}</span>
+                  </div>
+                )}
+                {recipe.nutrition.fat && (
+                  <div>
+                    <span className="text-muted-foreground">Fat: </span>
+                    <span className="font-medium">{recipe.nutrition.fat}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* All Diet Types */}
+            {recipe.diets?.length > 2 && (
+              <div className="flex flex-wrap gap-1.5">
+                {recipe.diets.map((diet: string) => (
+                  <Badge key={diet} variant="secondary" className="capitalize">
+                    {diet}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Ingredients and Instructions */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="ingredients">
+                <AccordionTrigger>Ingredients</AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-1.5">
+                    {recipe.extendedIngredients?.map((ingredient: any) => {
+                      const isInputIngredient = ingredientVariants.some((variant) =>
+                        ingredient.name.toLowerCase().includes(variant)
+                      );
+                      return (
+                        <li
+                          key={ingredient.id}
+                          className={cn(
+                            'flex items-center gap-2 text-sm',
+                            isInputIngredient ? 'text-green-600' : 'text-red-600'
+                          )}
+                        >
+                          <span>•</span>
+                          <span>{ingredient.original}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="instructions">
+                <AccordionTrigger>Instructions</AccordionTrigger>
+                <AccordionContent>
+                  <div
+                    className="prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: recipe.instructions }}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* View Full Recipe Button */}
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={() => window.open(recipe.sourceUrl, '_blank')}
+            >
+              View Full Recipe
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  recipeCard: {
-    padding: '20px',
-    border: '1px solid #ccc',
-    borderRadius: '10px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    backgroundColor: 'white',
-    position: 'relative', 
-  },
-  recipeTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    textAlign: 'center' as 'center',
-  },
-  recipeImage: {
-    width: '100%',
-    height: 'auto',
-    borderRadius: '8px',
-    objectFit: 'cover' as const,
-  },
-  sectionHeader: {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginTop: '10px',
-  },
-  ingredientsList: {
-    listStyle: 'disc',
-    paddingLeft: '20px',
-  },
-  heartIcon: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    cursor: 'pointer',
-    transition: 'transform 0.2s, color 0.2s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageWrapper: {
-    position: 'relative',
-    display: 'inline-block',
-  },
-  section: {
-    marginBottom: '15px',
-  },
-};
-
-export default RecipeCard;
+}
