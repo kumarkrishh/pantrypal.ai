@@ -10,13 +10,12 @@ PantryPal.ai is your personal kitchen assistant, designed to help you create del
 - Customizable Settings:  
   - Set the maximum number of non-inputted ingredients for API calls.  
   - Limit the number of recipes generated per query.  
-- Gemini API Integration:  
+- Open AI API Integration:  
   - Enables ingredient input via image upload.  
   - Adjusts recipes and ingredients based on user-defined constraints  
 - User Accounts: Create accounts manually or sign in with Google  
-- Shopping List: Add non-inputted ingredients required for recipes to a personal shopping list  
 - Recipe History: Access previously generated recipes  
-- Recipe Favorites: Favorite and rank recipes for future reference  
+- Recipe Favorites: Favorite recipes for future reference  
 
 ---
 
@@ -57,4 +56,4 @@ The app will be visible at [http://localhost:3000](http://localhost:3000), or an
 - Aditya Rao (adityar-123)
 - Arsh Koneru-Ansari (ArshKA)
 - Andy Xu (xuandy05)
-- Anshul Chennavaram ()
+- Anshul Chennavaram (anshulkc)
