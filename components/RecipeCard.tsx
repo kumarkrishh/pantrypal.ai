@@ -183,10 +183,13 @@ export default function RecipeCard({
               <AccordionItem value="instructions">
                 <AccordionTrigger>Instructions</AccordionTrigger>
                 <AccordionContent>
-                  <div
-                    className="prose prose-sm max-w-none dark:prose-invert"
-                    dangerouslySetInnerHTML={{ __html: recipe.instructions }}
-                  />
+                  <div className="space-y-2">
+                    {recipe.instructions?.split('\n').map((step: string, index: number) => (
+                      <p key={index} className="text-sm">
+                        {step.trim()}
+                      </p>
+                    ))}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
