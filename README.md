@@ -53,8 +53,8 @@ The app will be visible at [http://localhost:3000](http://localhost:3000), or an
 
 ---
 ## Project Contributors:
+- Krish Kumar (kumarkrishh)
 - Aditya Rao (adityar-123)
 - Arsh Koneru-Ansari (ArshKA)
-- Krish Kumar (kumarkrishh)
 - Andy Xu (xuandy05)
 - Anshul Chennavaram ()
