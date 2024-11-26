@@ -31,6 +31,7 @@ export default function RecipeGenerator() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
 
   const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
   const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
@@ -111,6 +112,7 @@ export default function RecipeGenerator() {
     setImagePreview(null);
     setSelectedImage(null);
     setIsRecipeGenerated(false);
+    setIsImageProcessing(false);
   };
 
   const handleFavoriteToggle = async () => {
@@ -120,49 +122,40 @@ export default function RecipeGenerator() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      setImagePreview(URL.createObjectURL(file));
-
-      try {
-        if (!openai) {
-          setError('OpenAI is not configured. Please check your API key.');
-          return;
+        setSelectedImage(file);
+        setImagePreview(URL.createObjectURL(file));
+        setIsImageProcessing(true); // Start image processing
+        try {
+            if (!openai) {
+                setError('OpenAI is not configured. Please check your API key.');
+                return;
+            }
+            const base64Image = await fileToBase64(file);
+            const response = await openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: 'List all the ingredients you can see in this image. Return them as a comma-separated list. If you don\'t see any food ingredients, return an empty list.' },
+                            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } },
+                        ],
+                    },
+                ],
+            });
+            setIngredients(response.choices[0].message.content || '');
+        } catch (err: any) {
+            if (err instanceof Error) {
+                setError(`Error processing image: ${err.message}`);
+            } else {
+                setError('An unknown error occurred while processing the image');
+            }
+            console.error(err);
+        } finally {
+            setIsImageProcessing(false); // End image processing
         }
-
-        setLoading(true);
-        const base64Image = await fileToBase64(file);
-        const response = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: 'List all the ingredients you can see in this image. Return them as a comma-separated list. If you don\'t see any food ingredients, return an empty list.',
-                },
-                {
-                  type: 'image_url',
-                  image_url: { url: `data:image/jpeg;base64,${base64Image}` },
-                },
-              ],
-            },
-          ],
-        });
-        setIngredients(response.choices[0].message.content || '');
-      } catch (err: any) {
-        if (err instanceof Error) {
-          setError(`Error processing image: ${err.message}`);
-        } else {
-          setError('An unknown error occurred while processing the image');
-        }
-        console.error(err);
-      } finally {
-        setImagePreview(null);
-        setLoading(false);
-      }
     }
-  };
+};
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -373,19 +366,24 @@ export default function RecipeGenerator() {
                 {!isRecipeGenerated ? (
                   <Button
                     onClick={handleGenerateRecipe}
-                    disabled={loading}
+                    disabled={loading || isImageProcessing} // Disable button during image processing or loading
                     className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Generating Recipes...
-                      </>
+                >
+                    {isImageProcessing ? (
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Processing Image...
+                        </>
+                    ) : loading ? (
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Generating Recipes...
+                        </>
                     ) : (
-                      <>
-                        <ChefHat className="mr-2 h-5 w-5" />
-                        Generate Recipes
-                      </>
+                        <>
+                            <ChefHat className="mr-2 h-5 w-5" />
+                            Generate Recipes
+                        </>
                     )}
                   </Button>
                 ) : (
