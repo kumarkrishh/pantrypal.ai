@@ -54,11 +54,10 @@ export default function RecipeGenerator() {
       setError('Please enter ingredients or upload an image');
       return;
     }
-
     setLoading(true);
     setError('');
     setRecipes([]);
-
+  
     try {
       const parsedIngredients = ingredients.split(',').map((i) => i.trim());
       const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
@@ -69,12 +68,12 @@ export default function RecipeGenerator() {
           apiKey: apiKey,
         },
       });
-
+  
       if (response.data.length === 0) {
         setError('No recipes found. Try different ingredients or increase the number of additional ingredients');
         return;
       }
-
+  
       const recipeDetails = await Promise.all(
         response.data.map(async (recipe: any) => {
           const [details, nutrition] = await Promise.all([
@@ -85,10 +84,17 @@ export default function RecipeGenerator() {
               params: { apiKey: apiKey },
             }),
           ]);
-          return { ...details.data, nutrition: nutrition.data };
+  
+          const formattedInstructions = await formatInstructions(details.data.instructions);
+  
+          return {
+            ...details.data,
+            instructions: formattedInstructions,
+            nutrition: nutrition.data
+          };
         })
       );
-
+  
       setRecipes(recipeDetails);
       setIsRecipeGenerated(true);
     } catch (err) {
@@ -195,6 +201,33 @@ export default function RecipeGenerator() {
     pluralize.singular(ingredient),
     pluralize.plural(ingredient),
   ]);
+
+  const formatInstructions = async (instructions: string) => {
+    if (!openai) {
+      return instructions;
+    }
+  
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'Format these cooking instructions into clear, numbered steps. Remove any ads or unnecessary text.'
+          },
+          {
+            role: 'user',
+            content: instructions
+          }
+        ]
+      });
+      
+      return response.choices[0].message.content || instructions;
+    } catch (err) {
+      console.error('Failed to format instructions:', err);
+      return instructions;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
