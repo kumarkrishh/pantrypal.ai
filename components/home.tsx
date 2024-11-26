@@ -156,7 +156,7 @@ export default function RecipeGenerator() {
         const newIngredients = response.choices[0].message.content || '';
         setIngredients(prevIngredients => 
           prevIngredients 
-            ? `${prevIngredients},${newIngredients}` 
+            ? `${prevIngredients}, ${newIngredients}` 
             : newIngredients
         );
       } catch (err: any) {
