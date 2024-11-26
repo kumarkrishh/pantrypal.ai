@@ -86,9 +86,13 @@ export default function RecipeGenerator() {
         });
   
         if (response.data.length === 0) {
-          setError('No recipes found. Try different ingredients or increase the number of additional ingredients');
-          return;
+          setError('No recipes found, try a new recipe search');
+          setRecipes([]);
+          setLoading(true);
+          setIsRecipeGenerated(false)
         }
+        
+  
   
         const recipeDetails = await Promise.all(
           response.data.map(async (recipe: any) => {
@@ -152,7 +156,7 @@ export default function RecipeGenerator() {
       const detectedIngredients = await processImageForIngredients(openai, base64Image);
       
       if (detectedIngredients.length === 0) {
-        setImageError('No ingredients detected in the image. Try uploading a clearer image or manually enter your ingredients.');
+        return;
       } else {
         setIngredients(prevIngredients => {
           const newIngredients = Array.from(new Set([...prevIngredients, ...detectedIngredients]));
