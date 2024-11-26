@@ -33,7 +33,10 @@ export default function RecipeGenerator() {
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
   const [isImageProcessing, setIsImageProcessing] = useState(false);
 
-  const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
+  const apiKey = [
+    process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY_1, process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY_2
+    
+  ];
   const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
   const openai = openaiKey ? new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true }) : null;
 
@@ -59,51 +62,63 @@ export default function RecipeGenerator() {
     setError('');
     setRecipes([]);
   
-    try {
-      const parsedIngredients = ingredients.split(',').map((i) => i.trim());
-      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-        params: {
-          ingredients: parsedIngredients.join(','),
-          number: numRecipes,
-          ranking: 1,
-          apiKey: apiKey,
-        },
-      });
+    const parsedIngredients = ingredients.split(',').map((i) => i.trim());
   
-      if (response.data.length === 0) {
-        setError('No recipes found. Try different ingredients or increase the number of additional ingredients');
-        return;
+    let successfulRequest = false;
+    for (let i = 0; i < apiKey.length; i++) {
+      try {
+        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+          params: {
+            ingredients: parsedIngredients.join(','),
+            number: numRecipes,
+            ranking: 1,
+            apiKey: apiKey[i],
+          },
+        });
+  
+        if (response.data.length === 0) {
+          setError('No recipes found. Try different ingredients or increase the number of additional ingredients');
+          return;
+        }
+  
+        const recipeDetails = await Promise.all(
+          response.data.map(async (recipe: any) => {
+            const [details, nutrition] = await Promise.all([
+              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+                params: { apiKey: apiKey[i] },
+              }),
+              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+                params: { apiKey: apiKey[i] },
+              }),
+            ]);
+  
+            const formattedInstructions = await formatInstructions(details.data.instructions);
+  
+            return {
+              ...details.data,
+              instructions: formattedInstructions,
+              nutrition: nutrition.data
+            };
+          })
+        );
+  
+        setRecipes(recipeDetails);
+        setIsRecipeGenerated(true);
+        successfulRequest = true;
+        break;  // Exit the loop once a valid API key is found and request is successful
+      } catch (err) {
+        console.error(`API Key #${i + 1} failed. Trying the next key...`);
       }
-  
-      const recipeDetails = await Promise.all(
-        response.data.map(async (recipe: any) => {
-          const [details, nutrition] = await Promise.all([
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-              params: { apiKey: apiKey },
-            }),
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-              params: { apiKey: apiKey },
-            }),
-          ]);
-  
-          const formattedInstructions = await formatInstructions(details.data.instructions);
-  
-          return {
-            ...details.data,
-            instructions: formattedInstructions,
-            nutrition: nutrition.data
-          };
-        })
-      );
-  
-      setRecipes(recipeDetails);
-      setIsRecipeGenerated(true);
-    } catch (err) {
-      setError('Failed to fetch recipes');
-    } finally {
-      setLoading(false);
     }
+  
+    if (!successfulRequest) {
+      setError('Failed to fetch recipes after trying all available API keys');
+    }
+  
+    setLoading(false);
   };
+  
+  
 
   const handleNewRecipe = () => {
     setIngredients('');
