@@ -159,23 +159,36 @@ export default function RecipeCard({
                 <AccordionTrigger>Ingredients</AccordionTrigger>
                 <AccordionContent>
                   <ul className="space-y-1.5">
-                    {recipe.extendedIngredients?.map((ingredient: any) => {
-                      const isInputIngredient = ingredientVariants.some((variant) =>
-                        ingredient.name.toLowerCase().includes(variant)
-                      );
-                      return (
-                        <li
-                          key={ingredient.id}
-                          className={cn(
-                            'flex items-center gap-2 text-sm',
-                            isInputIngredient ? 'text-green-600' : 'text-red-600'
-                          )}
-                        >
-                          <span>•</span>
-                          <span>{ingredient.original}</span>
-                        </li>
-                      );
-                    })}
+                    {recipe.extendedIngredients
+                      ?.sort((a: any, b: any) => {
+                        const isAInput = ingredientVariants.some((variant) =>
+                          a.name.toLowerCase().includes(variant)
+                        );
+                        const isBInput = ingredientVariants.some((variant) =>
+                          b.name.toLowerCase().includes(variant)
+                        );
+                        return isAInput === isBInput ? 0 : isAInput ? 1 : -1;
+                      })
+                      .map((ingredient: any) => {
+                        const isInputIngredient = ingredientVariants.some(
+                          (variant) =>
+                            ingredient.name.toLowerCase().includes(variant)
+                        );
+                        return (
+                          <li
+                            key={ingredient.id}
+                            className={cn(
+                              'flex items-center gap-2 text-sm',
+                              isInputIngredient
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            )}
+                          >
+                            <span>•</span>
+                            <span>{ingredient.original}</span>
+                          </li>
+                        );
+                      })}
                   </ul>
                 </AccordionContent>
               </AccordionItem>
