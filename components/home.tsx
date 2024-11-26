@@ -122,40 +122,55 @@ export default function RecipeGenerator() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-        setSelectedImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        setIsImageProcessing(true); // Start image processing
-        try {
-            if (!openai) {
-                setError('OpenAI is not configured. Please check your API key.');
-                return;
-            }
-            const base64Image = await fileToBase64(file);
-            const response = await openai.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', text: 'List all the ingredients you can see in this image. Return them as a comma-separated list. If you don\'t see any food ingredients, return an empty list.' },
-                            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } },
-                        ],
-                    },
-                ],
-            });
-            setIngredients(response.choices[0].message.content || '');
-        } catch (err: any) {
-            if (err instanceof Error) {
-                setError(`Error processing image: ${err.message}`);
-            } else {
-                setError('An unknown error occurred while processing the image');
-            }
-            console.error(err);
-        } finally {
-            setIsImageProcessing(false); // End image processing
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setIsImageProcessing(true);
+  
+      try {
+        if (!openai) {
+          setError('OpenAI is not configured. Please check your API key.');
+          return;
         }
+  
+        const base64Image = await fileToBase64(file);
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { 
+                  type: 'text', 
+                  text: 'List all the ingredients you can see in this image. Return them as a comma-separated list. If you don\'t see any food ingredients, return an empty list.' 
+                },
+                { 
+                  type: 'image_url', 
+                  image_url: { url: `data:image/jpeg;base64,${base64Image}` } 
+                },
+              ],
+            },
+          ],
+        });
+  
+        // Append new ingredients to existing ingredients
+        const newIngredients = response.choices[0].message.content || '';
+        setIngredients(prevIngredients => 
+          prevIngredients 
+            ? `${prevIngredients}, ${newIngredients}` 
+            : newIngredients
+        );
+      } catch (err: any) {
+        if (err instanceof Error) {
+          setError(`Error processing image: ${err.message}`);
+        } else {
+          setError('An unknown error occurred while processing the image');
+        }
+        console.error(err);
+      } finally {
+        setIsImageProcessing(false);
+      }
     }
-};
+  };
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -261,40 +276,56 @@ export default function RecipeGenerator() {
                 </TabsList>
 
                 <TabsContent value="ingredients" className="space-y-6">
-                  <div className="grid gap-6">
-                    <div 
-                      className={cn(
-                        "rounded-xl border-2 border-dashed p-8 transition-all bg-gradient-to-br",
-                        "hover:border-indigo-300 hover:from-indigo-50/30 hover:to-purple-50/30",
-                        isRecipeGenerated 
-                          ? "border-gray-200 from-gray-50 to-gray-50/50" 
-                          : "border-indigo-200 from-white to-white"
-                      )}
-                    >
-                      <label 
-                        htmlFor="file-upload" 
-                        className="flex flex-col items-center justify-center cursor-pointer"
-                      >
-                        <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
-                          <Upload className="h-8 w-8 text-indigo-600" />
-                        </div>
-                        <span className="text-base font-medium text-gray-700">
-                          {imagePreview ? 'Change image' : 'Upload ingredient image'}
-                        </span>
-                        <span className="text-sm text-gray-500 mt-1">
-                          Click or drag and drop
-                        </span>
-                      </label>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={isRecipeGenerated}
-                        className="hidden"
-                      />
-                      {imagePreview && (
-                        <div className="mt-6 relative w-full aspect-video rounded-xl overflow-hidden shadow-lg">
+                <div className="grid gap-6">
+                  <div
+                    className={cn(
+                      "rounded-xl border-2 border-dashed p-8 transition-all bg-gradient-to-br",
+                      "hover:border-indigo-300 hover:from-indigo-50/30 hover:to-purple-50/30",
+                      isRecipeGenerated ? "border-gray-200 from-gray-50 to-gray-50/50" : "border-indigo-200 from-white to-white"
+                    )}
+                  >
+                    {!isRecipeGenerated ? (
+                      <div className="flex flex-col items-center space-y-6">
+                        {/* Upload Button */}
+                        <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
+                          <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+                            <Upload className="h-8 w-8 text-indigo-600" />
+                          </div>
+                          <span className="text-base font-medium text-gray-700">
+                            {imagePreview ? 'Change Image' : 'Upload Ingredient Image'}
+                          </span>
+                          <span className="text-sm text-gray-500 mt-1">Click or drag and drop</span>
+                        </label>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isRecipeGenerated}
+                          className="hidden"
+                        />
+
+                        {/* Image Preview */}
+                        {imagePreview && (
+                          <div className="relative w-full max-w-xs aspect-video rounded-xl overflow-hidden shadow-lg">
+                            <Image
+                              src={imagePreview}
+                              alt="Uploaded ingredients"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Second Page: Show only the image without the upload button
+                      imagePreview && (
+                        <div
+                          className={cn(
+                            "relative rounded-xl overflow-hidden shadow-lg transition-all",
+                            "w-64 h-64 mx-auto mt-4"
+                          )}
+                        >
                           <Image
                             src={imagePreview}
                             alt="Uploaded ingredients"
@@ -302,23 +333,22 @@ export default function RecipeGenerator() {
                             className="object-cover"
                           />
                         </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label className="text-base font-medium text-gray-700">Available Ingredients</Label>
-                      <Input
-                        value={ingredients}
-                        onChange={(e) => setIngredients(e.target.value)}
-                        placeholder="Enter ingredients (comma separated)"
-                        disabled={isRecipeGenerated}
-                        className="border-indigo-100 focus-visible:ring-indigo-600 h-12 text-base"
-                      />
-                      <p className="text-sm text-gray-500">
-                        Add your available ingredients, separated by commas
-                      </p>
-                    </div>
+                      )
+                    )}
                   </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium text-gray-700">Available Ingredients</Label>
+                    <Input
+                      value={ingredients}
+                      onChange={(e) => setIngredients(e.target.value)}
+                      placeholder="Enter ingredients (comma separated)"
+                      disabled={isRecipeGenerated}
+                      className="border-indigo-100 focus-visible:ring-indigo-600 h-12 text-base"
+                    />
+                    <p className="text-sm text-gray-500">Add your available ingredients, separated by commas</p>
+                  </div>
+                </div>
                 </TabsContent>
 
                 <TabsContent value="preferences" className="space-y-8">
