@@ -112,6 +112,7 @@ export default function RecipeGenerator() {
     setImagePreview(null);
     setSelectedImage(null);
     setIsRecipeGenerated(false);
+    setIsImageProcessing(false);
   };
 
   const handleFavoriteToggle = async () => {
