@@ -212,7 +212,7 @@ export default function RecipeGenerator() {
             <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
               <CardTitle className="text-2xl font-semibold text-gray-800">Recipe Generator</CardTitle>
               <CardDescription className="text-gray-600">
-                Let's turn your available ingredients into amazing recipes
+                Let&apos;s turn your available ingredients into amazing recipes
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -329,7 +329,7 @@ export default function RecipeGenerator() {
                         className="py-4"
                       />
                       <p className="text-sm text-gray-500">
-                        Choose how many recipe suggestions you'd like to receive
+                        Choose how many recipe suggestions you&apos;d like to receive
                       </p>
                     </div>
                   </div>
