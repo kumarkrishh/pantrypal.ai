@@ -16,10 +16,7 @@ function SavedRecipesPage() {
       axios
         .get("/api/getSavedRecipes")
         .then((res) => {
-          const fetchedRecipes = res.data.map((recipe: any) => ({
-            ...recipe,
-            id: recipe._id,
-          }));
+          const fetchedRecipes = res.data;
           setRecipes(fetchedRecipes);
           setFavoritedRecipes(new Set(fetchedRecipes.map((recipe: any) => recipe.id)));
         })

@@ -228,29 +228,33 @@ export default function RecipeGenerator() {
       alert('You need to be logged in to favorite recipes.');
       return;
     }
-
+  
     const isFavorited = favoritedRecipes.has(recipe.id);
-
+  
     try {
       if (isFavorited) {
-        await axios.delete(`/api/deleteRecipe?recipeId=${recipe.id || recipe._id}`);
-        setRecipes(recipes.filter((r) => (r.id || r._id) !== (recipe.id || recipe._id)));
+        await axios.delete(`/api/deleteRecipe?recipeId=${recipe.id}`);
+        // setRecipes(recipes.filter((r) => r.id !== recipe.id));
         setFavoritedRecipes((prev) => {
           const updated = new Set(prev);
-          updated.delete(recipe.id || recipe._id);
+          updated.delete(recipe.id);
           return updated;
         });
         alert('Recipe removed from your favorites!');
       } else {
         await axios.post('/api/saveRecipe', recipe);
-        setFavoritedRecipes((prev) => new Set(prev).add(recipe.id));
+        setFavoritedRecipes((prev) => {
+          const updated = new Set(prev);
+          updated.add(recipe.id);
+          return updated;
+        });
         alert('Recipe added to your favorites!');
       }
     } catch (error) {
       console.error('Error updating favorite status:', error);
       alert('Failed to update favorite status.');
     }
-  };
+  };  
 
 return (
   <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

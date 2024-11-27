@@ -15,6 +15,14 @@ export async function POST(request: Request) {
     const client = await getClientPromise();
     const db = client.db();
 
+    // Ensure the 'id' field is included and is a string
+    if (!recipeData.id) {
+      return NextResponse.json({ error: 'Recipe ID is missing' }, { status: 400 });
+    }
+
+    // Optionally, convert 'id' to a string if it's not already
+    recipeData.id = recipeData.id.toString();
+
     await db.collection('recipes').insertOne({
       ...recipeData,
       userId: session.user.id,

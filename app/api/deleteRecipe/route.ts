@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getClientPromise } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
 
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions);
@@ -15,15 +14,16 @@ export async function DELETE(request: Request) {
     const url = new URL(request.url);
     const recipeId = url.searchParams.get('recipeId');
 
-    if (!recipeId || !ObjectId.isValid(recipeId)) {
+    if (!recipeId) {
       return NextResponse.json({ error: 'Invalid Recipe ID' }, { status: 400 });
     }
 
     const client = await getClientPromise();
     const db = client.db();
 
+    // Delete the recipe using the 'id' field (Spoonacular ID)
     const result = await db.collection('recipes').deleteOne({
-      _id: new ObjectId(recipeId),
+      id: recipeId,
       userId: session.user.id,
     });
 
