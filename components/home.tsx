@@ -59,9 +59,16 @@ export default function RecipeGenerator() {
   };
 
   const handleAddIngredient = () => {
-    if (currentIngredient.trim()) {
-      setIngredients(prev => [...prev, currentIngredient.trim()]);
-      setCurrentIngredient('');
+    const trimmedIngredient = currentIngredient.trim().toLowerCase();
+    
+    const isDuplicate = ingredients.some(
+      ingredient => ingredient.toLowerCase() === trimmedIngredient
+    );
+  
+    setCurrentIngredient('');
+  
+    if (trimmedIngredient && !isDuplicate) {
+      setIngredients(prev => [...prev, trimmedIngredient]);
     }
   };
 
