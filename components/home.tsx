@@ -33,6 +33,7 @@ export default function RecipeGenerator() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
   const [isImageProcessing, setIsImageProcessing] = useState(false);
+  const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
 
   const apiKey = [
     process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY_1,
@@ -154,20 +155,34 @@ export default function RecipeGenerator() {
     try {
       const base64Image = await fileToBase64(file);
       const detectedIngredients = await processImageForIngredients(openai, base64Image);
-      
       if (detectedIngredients.length === 0) {
         return;
       } else {
-        setIngredients(prevIngredients => {
-          const newIngredients = Array.from(new Set([...prevIngredients, ...detectedIngredients]));
-          return newIngredients;
-        });        
+        setDetectedIngredients(detectedIngredients);
+        setIngredients(prevIngredients => { 
+          const newIngredients = Array.from(new Set([...prevIngredients, ...detectedIngredients])); 
+          return newIngredients; 
+        });
       }
     } catch (err: any) {
       setImageError(err instanceof Error ? err.message : 'An unknown error occurred');
       console.error(err);
     } finally {
       setIsImageProcessing(false);
+    }
+  };
+
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setImageError(null);
+    setIsImageProcessing(false);
+    setCurrentIngredient('');
+    if (imagePreview) {
+      const remainingIngredients = ingredients.filter(ingredient => 
+        !detectedIngredients.includes(ingredient)
+      );
+      setIngredients(remainingIngredients);
     }
   };
 
@@ -246,6 +261,7 @@ return (
                     isImageProcessing={isImageProcessing}
                     error={imageError}
                     onImageUpload={handleImageUpload}
+                    onImageRemove={handleImageRemove}
                   />
                   <div className="flex gap-2">
                     <input

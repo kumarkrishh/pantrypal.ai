@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface ImageUploadProps {
   imagePreview: string | null;
@@ -12,6 +13,7 @@ interface ImageUploadProps {
   isImageProcessing: boolean;
   error: string | null;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onImageRemove: () => void;
 }
 
 export function ImageUpload({
@@ -19,7 +21,8 @@ export function ImageUpload({
   isRecipeGenerated,
   isImageProcessing,
   error,
-  onImageUpload
+  onImageUpload,
+  onImageRemove
 }: ImageUploadProps) {
   return (
     <div className="space-y-4">
@@ -62,6 +65,14 @@ export function ImageUpload({
                   fill
                   className="object-cover"
                 />
+                <Button 
+                  variant="destructive" 
+                  size="icon" 
+                  className="absolute top-2 right-2 rounded-full"
+                  onClick={onImageRemove}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             )}
           </div>
@@ -74,6 +85,14 @@ export function ImageUpload({
                 fill
                 className="object-cover"
               />
+              <Button 
+                variant="destructive" 
+                size="icon" 
+                className="absolute top-2 right-2 rounded-full"
+                onClick={onImageRemove}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           )
         )}
