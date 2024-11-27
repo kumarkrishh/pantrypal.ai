@@ -13,6 +13,7 @@ interface IngredientInputProps {
 
 export function IngredientInput({ ingredients, onIngredientsChange, disabled }: IngredientInputProps) {
   const [currentIngredient, setCurrentIngredient] = useState('');
+  const [error, setError] = useState('');
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && currentIngredient.trim()) {
@@ -23,9 +24,21 @@ export function IngredientInput({ ingredients, onIngredientsChange, disabled }: 
 
   const addIngredient = () => {
     const trimmedIngredient = currentIngredient.trim().toLowerCase();
-    if (trimmedIngredient && !ingredients.includes(trimmedIngredient)) {
+    
+    // Check for case-insensitive duplicates
+    const isDuplicate = ingredients.some(
+      ingredient => ingredient.toLowerCase() === trimmedIngredient
+    );
+
+    if (isDuplicate) {
+      setError('This ingredient is already in the list');
+      return;
+    }
+
+    if (trimmedIngredient) {
       onIngredientsChange([...ingredients, trimmedIngredient]);
       setCurrentIngredient('');
+      setError('');
     }
   };
 
@@ -38,12 +51,18 @@ export function IngredientInput({ ingredients, onIngredientsChange, disabled }: 
       <Label className="text-base font-medium text-gray-700">Available Ingredients</Label>
       <Input
         value={currentIngredient}
-        onChange={(e) => setCurrentIngredient(e.target.value)}
+        onChange={(e) => {
+          setCurrentIngredient(e.target.value);
+          setError('');
+        }}
         onKeyDown={handleKeyDown}
         placeholder="Type an ingredient and press Enter"
         disabled={disabled}
         className="border-indigo-100 focus-visible:ring-indigo-600 h-12 text-base"
       />
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
+      )}
       <div className="flex flex-wrap gap-2 mt-2">
         {ingredients.map((ingredient, index) => (
           <Badge
