@@ -1,4 +1,3 @@
-//testing
 'use client';
 
 import { useState } from 'react';
@@ -27,6 +26,7 @@ interface RecipeCardProps {
   isFavorited: boolean;
   onFavoriteToggle: (recipe: any) => void;
   ingredientVariants?: string[];
+  disableIngredientColor?: boolean;
 }
 
 export default function RecipeCard({
@@ -34,6 +34,7 @@ export default function RecipeCard({
   isFavorited,
   onFavoriteToggle,
   ingredientVariants = [],
+  disableIngredientColor = false, 
 }: RecipeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -168,13 +169,26 @@ export default function RecipeCard({
                         const isBInput = ingredientVariants.some((variant) =>
                           b.name.toLowerCase().includes(variant)
                         );
-                        return isAInput === isBInput ? 0 : isAInput ? 1 : -1;
+                        return isAInput === isBInput ? 0 : isAInput ? -1 : 1;
                       })
                       .map((ingredient: any) => {
+                        if (disableIngredientColor) {
+                          return (
+                            <li
+                              key={ingredient.id}
+                              className="flex items-center gap-2 text-sm text-gray-700"
+                            >
+                              <span>•</span>
+                              <span>{ingredient.original}</span>
+                            </li>
+                          );
+                        }
+
                         const isInputIngredient = ingredientVariants.some(
                           (variant) =>
                             ingredient.name.toLowerCase().includes(variant)
                         );
+
                         return (
                           <li
                             key={ingredient.id}
