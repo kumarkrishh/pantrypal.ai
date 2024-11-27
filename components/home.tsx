@@ -171,6 +171,14 @@ export default function RecipeGenerator() {
     }
   };
 
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setImageError(null);
+    setIsImageProcessing(false);
+    setCurrentIngredient('');
+  };
+
   const formatInstructions = async (instructions: string) => {
     if (!openai) return instructions;
   
@@ -246,6 +254,7 @@ return (
                     isImageProcessing={isImageProcessing}
                     error={imageError}
                     onImageUpload={handleImageUpload}
+                    onImageRemove={handleImageRemove}
                   />
                   <div className="flex gap-2">
                     <input
