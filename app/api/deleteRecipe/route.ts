@@ -12,10 +12,11 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const { recipeId } = await request.json();
+    const url = new URL(request.url);
+    const recipeId = url.searchParams.get('recipeId');
 
-    if (!recipeId) {
-      return NextResponse.json({ error: 'Recipe ID is required' }, { status: 400 });
+    if (!recipeId || !ObjectId.isValid(recipeId)) {
+      return NextResponse.json({ error: 'Invalid Recipe ID' }, { status: 400 });
     }
 
     const client = await getClientPromise();
