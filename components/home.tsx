@@ -59,19 +59,16 @@ export default function RecipeGenerator() {
   };
 
   const handleAddIngredient = () => {
-    if (currentIngredient.trim()) {
-      const trimmedIngredient = currentIngredient.trim().toLowerCase();
-      
-      // Check if the ingredient already exists (case-insensitive)
-      const isDuplicate = ingredients.some(
-        ingredient => ingredient.toLowerCase() === trimmedIngredient
-      );
+    const trimmedIngredient = currentIngredient.trim().toLowerCase();
+    
+    const isDuplicate = ingredients.some(
+      ingredient => ingredient.toLowerCase() === trimmedIngredient
+    );
   
-      // Only add if not a duplicate
-      if (!isDuplicate) {
-        setIngredients(prev => [...prev, trimmedIngredient]);
-        setCurrentIngredient('');
-      }
+    setCurrentIngredient('');
+  
+    if (trimmedIngredient && !isDuplicate) {
+      setIngredients(prev => [...prev, trimmedIngredient]);
     }
   };
 
