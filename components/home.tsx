@@ -17,6 +17,8 @@ import RecipeCard from '@/components/RecipeCard';
 import Navbar from '@/components/Navbar';
 import { createOpenAIClient, processImageForIngredients } from '@/lib/utils/openai';
 import { fileToBase64 } from '@/lib/utils/file';
+import OpenAI from 'openai';
+
 
 export default function RecipeGenerator() {
   const { data: session } = useSession();
@@ -34,13 +36,20 @@ export default function RecipeGenerator() {
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
   const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
+  const [modifiedRecipe, setModifiedRecipe] = useState('');
+
 
   const apiKey = [
     process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY_1,
     process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY_2
   ];
-  const openai = createOpenAIClient(process.env.NEXT_PUBLIC_OPENAI_API_KEY);
-
+  const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  let openai: OpenAI;
+  if (openaiKey) {
+    openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
+  } else {
+    console.warn('OpenAI API key not found. Some features may not work.');
+  }
   useEffect(() => {
     if (session) {
       axios
@@ -81,7 +90,7 @@ export default function RecipeGenerator() {
     setError('');
     setRecipes([]);
   
-    let successfulRequest = false;
+    // let successfulRequest = false;
     for (let i = 0; i < apiKey.length; i++) {
       try {
         const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
@@ -125,16 +134,18 @@ export default function RecipeGenerator() {
   
         setRecipes(recipeDetails);
         setIsRecipeGenerated(true);
-        successfulRequest = true;
+        // successfulRequest = true;
         break;
       } catch (err) {
         console.error(`API Key #${i + 1} failed. Trying the next key...`);
       }
     }
   
+/*
     if (!successfulRequest) {
       setError('Failed to fetch recipes after trying all available API keys');
     }
+    */
   
     setLoading(false);
   };
@@ -218,10 +229,10 @@ export default function RecipeGenerator() {
     }
   };
 
-  const ingredientVariants = ingredients.flatMap(ingredient => [
+  const ingredientVariants = ingredients.map(ingredient => [
     pluralize.singular(ingredient),
     pluralize.plural(ingredient),
-  ]);
+  ]).flat();
 
   const handleFavoriteToggle = async (recipe: any) => {
     if (!session) {
