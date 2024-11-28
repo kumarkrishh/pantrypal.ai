@@ -6,8 +6,8 @@ import { NextAuthProvider } from '@/components/NextAuthProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Modern Auth - Sign In',
-  description: 'A modern authentication system with Next.js and NextAuth',
+  title: 'RecipeAI',
+  description: 'AI Recipe Generator',
 };
 
 export default function RootLayout({
