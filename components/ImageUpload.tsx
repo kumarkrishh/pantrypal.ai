@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Image from 'next/image';
-import { Upload, Loader2, X } from 'lucide-react';
+import { Upload, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,26 @@ export function ImageUpload({
   onImageUpload,
   onImageRemove
 }: ImageUploadProps) {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const event = {
+        target: {
+          files: files
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      onImageUpload(event);
+    }
+  }, [onImageUpload]);
+
   return (
     <div className="space-y-4">
       <div
@@ -32,6 +52,8 @@ export function ImageUpload({
           "hover:border-indigo-300 hover:from-indigo-50/30 hover:to-purple-50/30",
           isRecipeGenerated ? "border-gray-200 from-gray-50 to-gray-50/50" : "border-indigo-200 from-white to-white"
         )}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         {!isRecipeGenerated ? (
           <div className="flex flex-col items-center space-y-6">
@@ -46,7 +68,7 @@ export function ImageUpload({
               <span className="text-base font-medium text-gray-700">
                 {imagePreview ? 'Change Image' : 'Upload Ingredient Image'}
               </span>
-              <span className="text-sm text-gray-500 mt-1">Click or drag and drop</span>
+              <span className="text-sm text-gray-500 mt-1">Drag and drop or click to upload</span>
             </label>
             <input
               id="file-upload"
@@ -65,14 +87,12 @@ export function ImageUpload({
                   fill
                   className="object-cover"
                 />
-                <Button 
-                  variant="destructive" 
-                  size="icon" 
-                  className="absolute top-2 right-2 rounded-full"
+                <button
                   onClick={onImageRemove}
+                  className="absolute top-2 right-2 p-1.5 text-gray-500 hover:text-red-500 transition-colors duration-200"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                  <Trash2 className="h-5 w-5" />
+                </button>
               </div>
             )}
           </div>
@@ -85,14 +105,12 @@ export function ImageUpload({
                 fill
                 className="object-cover"
               />
-              <Button 
-                variant="destructive" 
-                size="icon" 
-                className="absolute top-2 right-2 rounded-full"
+              <button
                 onClick={onImageRemove}
+                className="absolute top-2 right-2 p-1.5 text-gray-500 hover:text-red-500 transition-colors duration-200"
               >
-                <X className="h-4 w-4" />
-              </Button>
+                <Trash2 className="h-5 w-5" />
+              </button>
             </div>
           )
         )}
