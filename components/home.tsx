@@ -55,7 +55,8 @@ export default function RecipeGenerator() {
       axios
         .get('/api/getSavedRecipes')
         .then((res) => {
-          setFavoritedRecipes(new Set(res.data.map((recipe: any) => recipe.id)));
+          const favoriteIds = res.data.map((recipe: any) => recipe.id.toString());
+          setFavoritedRecipes(new Set(favoriteIds));
         })
         .catch(() => {
           setError('Failed to fetch saved recipes');
@@ -108,8 +109,6 @@ export default function RecipeGenerator() {
           setLoading(true);
           setIsRecipeGenerated(false)
         }
-        
-  
   
         const recipeDetails = await Promise.all(
           response.data.map(async (recipe: any) => {
@@ -131,8 +130,13 @@ export default function RecipeGenerator() {
             };
           })
         );
+
+        const recipesWithStringIds = recipeDetails.map((recipe) => ({
+            ...recipe,
+            id: recipe.id.toString(),
+          }));
+        setRecipes(recipesWithStringIds);
   
-        setRecipes(recipeDetails);
         setIsRecipeGenerated(true);
         // successfulRequest = true;
         break;
@@ -245,7 +249,6 @@ export default function RecipeGenerator() {
     try {
       if (isFavorited) {
         await axios.delete(`/api/deleteRecipe?recipeId=${recipe.id}`);
-        // setRecipes(recipes.filter((r) => r.id !== recipe.id));
         setFavoritedRecipes((prev) => {
           const updated = new Set(prev);
           updated.delete(recipe.id);
