@@ -57,7 +57,8 @@ export default function RecipeGenerator() {
       axios
         .get('/api/getSavedRecipes')
         .then((res) => {
-          setFavoritedRecipes(new Set(res.data.map((recipe: any) => recipe.id)));
+          const favoriteIds = res.data.map((recipe: any) => recipe.id.toString());
+          setFavoritedRecipes(new Set(favoriteIds));
         })
         .catch(() => {
           setError('Failed to fetch saved recipes');
@@ -110,8 +111,6 @@ export default function RecipeGenerator() {
           setLoading(true);
           setIsRecipeGenerated(false)
         }
-        
-  
   
         const recipeDetails = await Promise.all(
           response.data.map(async (recipe: any) => {
@@ -133,8 +132,13 @@ export default function RecipeGenerator() {
             };
           })
         );
+
+        const recipesWithStringIds = recipeDetails.map((recipe) => ({
+            ...recipe,
+            id: recipe.id.toString(),
+          }));
+        setRecipes(recipesWithStringIds);
   
-        setRecipes(recipeDetails);
         setIsRecipeGenerated(true);
         // successfulRequest = true;
         break;
@@ -247,13 +251,11 @@ export default function RecipeGenerator() {
     try {
       if (isFavorited) {
         await axios.delete(`/api/deleteRecipe?recipeId=${recipe.id}`);
-        // setRecipes(recipes.filter((r) => r.id !== recipe.id));
         setFavoritedRecipes((prev) => {
           const updated = new Set(prev);
           updated.delete(recipe.id);
           return updated;
         });
-        alert('Recipe removed from your favorites!');
       } else {
         await axios.post('/api/saveRecipe', recipe);
         setFavoritedRecipes((prev) => {
@@ -261,7 +263,6 @@ export default function RecipeGenerator() {
           updated.add(recipe.id);
           return updated;
         });
-        alert('Recipe added to your favorites!');
       }
     } catch (error) {
       console.error('Error updating favorite status:', error);
@@ -290,16 +291,9 @@ export default function RecipeGenerator() {
 
 
 return (
-  <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+  <div className="h-[100vh] bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
     <Navbar />
-    <div className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="p-1 text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          Pantry Pal
-        </h1>
-        <p className="text-lg text-gray-600">Transform your ingredients into delicious meals</p>
-      </div>
-
+    <div className="container w-[70vw] mt-10">
       <div className="max-w-[1400px] mx-auto">
         <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
           <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">

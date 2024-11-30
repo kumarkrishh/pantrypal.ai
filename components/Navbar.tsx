@@ -1,90 +1,68 @@
 "use client";
 
-import React, { CSSProperties } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { Button } from "@/components/ui/button";
+import { Home, Info, Mail, Heart, LogIn, LogOut, ChefHat } from "lucide-react";
 
 const Navbar = () => {
   const { data: session } = useSession();
+
   return (
-    <nav style={styles.navbar}>
-      <ul style={styles.navList}>
-        <li style={styles.navItem}>
-          <Link href="/" style={styles.navLink}>Home</Link>
-        </li>
-        <li style={styles.navItem}>
-          <Link href="/about" style={styles.navLink}>About</Link>
-        </li>
-        <li style={styles.navItem}>
-          <Link href="/contact" style={styles.navLink}>Contact</Link>
-        </li>
-        <li style={styles.navItem}>
-          <Link href="/saved-recipes" style={styles.navLink}>Favorites</Link>
-        </li>
-        <li style={styles.navItem}>
+    <nav className="w-full bg-transparent border-b border-indigo-100 sticky top-0 z-50">
+      <div className="max-w-[1400px] mx-auto px-4 flex h-16 items-center justify-between">
+        <Link 
+          href="/" 
+          className="flex items-center space-x-2 text-xl font-bold"
+        >
+          <ChefHat className="h-6 w-6 text-indigo-600" />
+          <span className="text-indigo-600">RecipeAI</span>
+        </Link>
+
+        <div className="hidden md:flex items-center space-x-1">
+          <Link href="/saved-recipes">
+            <Button
+              variant="ghost"
+              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+            >
+              <Heart className="w-4 h-4 mr-2" />
+              Favorites
+            </Button>
+          </Link>
+
+          <Link href="/contact">
+            <Button
+              variant="ghost"
+              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Contact
+            </Button>
+          </Link>
+
           {session ? (
-            <button 
-              style={styles.navButton} 
+            <Button
               onClick={() => signOut()}
+              variant="ghost"
+              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 ml-2"
             >
+              <LogOut className="w-4 h-4 mr-2" />
               Sign Out
-            </button>
+            </Button>
           ) : (
-            <button 
-              style={styles.navButton} 
+            <Button
               onClick={() => signIn()}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white ml-2"
             >
+              <LogIn className="w-4 h-4 mr-2" />
               Sign In
-            </button>
+            </Button>
           )}
-        </li>
-      </ul>
+        </div>
+      </div>
     </nav>
   );
-};
-
-const styles: { [key: string]: CSSProperties } = {
-  navbar: {
-    backgroundColor: '#f8f9fa', 
-    padding: '0.5rem 1rem', 
-    display: 'flex',
-    justifyContent: 'center',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', 
-  },
-  navList: {
-    listStyle: 'none',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center', 
-    margin: 0,
-    padding: 0,
-    width: '100%',
-    maxWidth: '800px',
-    gap: '1rem',
-  },
-  navItem: {
-    display: 'inline', 
-  },
-  navLink: {
-    color: '#333', 
-    textDecoration: 'none',
-    fontSize: '1.2rem',
-    padding: '0.5rem 1rem',
-    display: 'inline-block', 
-    borderRadius: '4px', 
-  },
-  navButton: {
-    backgroundColor: '#007bff', 
-    color: 'white',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    borderRadius: '4px',
-    textAlign: 'center',
-    display: 'inline-block',
-    whiteSpace: 'nowrap', 
-  },
 };
 
 export default Navbar;
