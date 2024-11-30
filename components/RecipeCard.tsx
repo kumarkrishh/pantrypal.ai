@@ -28,7 +28,7 @@ interface RecipeCardProps {
   onFavoriteToggle: (recipe: any) => void;
   ingredientVariants?: string[];
   disableIngredientColor?: boolean;
-  onEditRecipe: (recipe: any) => void;
+  onEditRecipe?: (recipe: any) => void;
 }
 
 export default function RecipeCard({
@@ -229,7 +229,7 @@ export default function RecipeCard({
             <Button
               variant="default"
               className="w-full"
-              onClick={() => onEditRecipe(recipe)}
+              onClick={() => onEditRecipe?.(recipe)}
             >
               Edit Recipe
             </Button>
