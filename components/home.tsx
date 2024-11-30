@@ -18,6 +18,8 @@ import Navbar from '@/components/Navbar';
 import { createOpenAIClient, processImageForIngredients } from '@/lib/utils/openai';
 import { fileToBase64 } from '@/lib/utils/file';
 import OpenAI from 'openai';
+import EditRecipeCard from '@/components/EditRecipeCard';
+
 
 
 export default function RecipeGenerator() {
@@ -36,7 +38,7 @@ export default function RecipeGenerator() {
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
   const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
-  const [modifiedRecipe, setModifiedRecipe] = useState('');
+  const [editingRecipe, setEditingRecipe] = useState<any | null>(null);
 
 
   const apiKey = [
@@ -213,7 +215,7 @@ export default function RecipeGenerator() {
         messages: [
           {
             role: 'system',
-            content: 'Format these cooking instructions into clear, numbered steps. Remove any ads or unnecessary text.'
+            content: 'Format these cooking instructions into clear, numbered steps. Remove any ads or unnecessary text. Make sure the amounts used in the ingredients are kept uniform.'
           },
           {
             role: 'user',
@@ -265,7 +267,27 @@ export default function RecipeGenerator() {
       console.error('Error updating favorite status:', error);
       alert('Failed to update favorite status.');
     }
-  };  
+  };
+
+  const handleEditRecipe = (recipe: any) => {
+    setEditingRecipe(recipe);
+  };
+
+  const handleSaveEditedRecipe = (editedRecipe: any) => {
+    setRecipes(prevRecipes => 
+      prevRecipes.map(recipe => 
+        recipe.id === editedRecipe.id ? editedRecipe : recipe
+      )
+    );
+    setEditingRecipe(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecipe(null);
+  };
+
+
+
 
 return (
   <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -441,7 +463,14 @@ return (
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {editingRecipe ? (
+          <EditRecipeCard
+            recipe={editingRecipe}
+            onSave={handleSaveEditedRecipe}
+            onCancel={handleCancelEdit}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {recipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
@@ -449,9 +478,11 @@ return (
               isFavorited={favoritedRecipes.has(recipe.id)}
               onFavoriteToggle={handleFavoriteToggle}
               ingredientVariants={ingredientVariants}
+              onEditRecipe={handleEditRecipe}
             />
           ))}
         </div>
+        )}
       </div>
     </div>
   </div>

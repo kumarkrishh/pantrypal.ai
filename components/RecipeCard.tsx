@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Card,
@@ -27,6 +28,7 @@ interface RecipeCardProps {
   onFavoriteToggle: (recipe: any) => void;
   ingredientVariants?: string[];
   disableIngredientColor?: boolean;
+  onEditRecipe: (recipe: any) => void;
 }
 
 export default function RecipeCard({
@@ -35,6 +37,7 @@ export default function RecipeCard({
   onFavoriteToggle,
   ingredientVariants = [],
   disableIngredientColor = false, 
+  onEditRecipe
 }: RecipeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -171,11 +174,11 @@ export default function RecipeCard({
                         );
                         return isAInput === isBInput ? 0 : isAInput ? -1 : 1;
                       })
-                      .map((ingredient: any) => {
+                      .map((ingredient: any, index: number) => {
                         if (disableIngredientColor) {
                           return (
                             <li
-                              key={ingredient.id}
+                              key={`${ingredient.id}-${index}`}
                               className="flex items-center gap-2 text-sm text-gray-700"
                             >
                               <span>•</span>
@@ -222,14 +225,15 @@ export default function RecipeCard({
               </AccordionItem>
             </Accordion>
 
-            {/* View Full Recipe Button */}
+            {/* Edit Recipe Button */}
             <Button
               variant="default"
               className="w-full"
-              onClick={() => window.open(recipe.sourceUrl, '_blank')}
+              onClick={() => onEditRecipe(recipe)}
             >
-              View Full Recipe
+              Edit Recipe
             </Button>
+
           </div>
         )}
       </CardContent>
