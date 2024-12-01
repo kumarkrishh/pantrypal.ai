@@ -45,7 +45,7 @@ NEXT_PUBLIC_GEMINI_API_KEY=
 
 ```bash
 npm install
-npm start dev
+npm run dev
 ```
 
 The app will be visible at [http://localhost:3000](http://localhost:3000), or another port as specified, in your browser
