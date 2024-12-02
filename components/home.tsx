@@ -280,6 +280,7 @@ export default function RecipeGenerator() {
         recipe.id === editedRecipe.id ? editedRecipe : recipe
       )
     );
+
     setEditingRecipe(null);
   };
 
