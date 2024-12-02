@@ -293,7 +293,7 @@ export default function RecipeGenerator() {
 return (
   <div className="h-[100vh] bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
     <Navbar />
-    <div className="container w-[70vw] mt-10">
+    <div className="container w-[70vw] mt-10 pb-20">
       <div className="max-w-[1400px] mx-auto">
         <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
           <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
