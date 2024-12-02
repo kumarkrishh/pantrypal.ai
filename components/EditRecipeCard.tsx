@@ -43,9 +43,11 @@ export default function EditRecipeCard({
     };
   
     const handleIngredientEdit = (index: number, newValue: string) => {
-      const updatedIngredients = [...ingredients];
-      updatedIngredients[index].original = newValue;
-      setIngredients(updatedIngredients);
+      setIngredients((prevIngredients: any) => {
+        const updatedIngredients = [...prevIngredients];
+        updatedIngredients[index].original = newValue;
+        return updatedIngredients;
+      });
     };
   
     const handleAddIngredient = () => {

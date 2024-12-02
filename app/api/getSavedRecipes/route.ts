@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
   try {
     const client = await getClientPromise();
+    console.log('MongoDB connected successfully');
     const db = client.db();
 
     const recipes = await db
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(recipes, { status: 200 });
   } catch (error) {
+    console.error('MongoDB connection error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch recipes' },
       { status: 500 }

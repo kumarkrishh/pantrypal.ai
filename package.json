@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--tls-min-v1.0 --tls-cipher-list=DEFAULT@SECLEVEL=0' next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_OPTIONS='--tls-min-v1.0 --tls-cipher-list=DEFAULT@SECLEVEL=0' next start",
     "lint": "next lint",
     "test-server": "node testServer.js",
     "pretest": "npm run lint",
