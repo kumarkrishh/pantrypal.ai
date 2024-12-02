@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import OpenAI from 'openai';
-import { v4 as uuidv4 } from 'uuid';
 import { useCallback } from 'react';
 
 
