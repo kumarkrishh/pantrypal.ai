@@ -163,51 +163,43 @@ export default function RecipeCard({
               <AccordionItem value="ingredients">
                 <AccordionTrigger>Ingredients</AccordionTrigger>
                 <AccordionContent>
-                  <ul className="space-y-1.5">
-                    {recipe.extendedIngredients
-                      ?.sort((a: any, b: any) => {
-                        const isAInput = ingredientVariants.some((variant) =>
-                          a.name.toLowerCase().includes(variant)
-                        );
-                        const isBInput = ingredientVariants.some((variant) =>
-                          b.name.toLowerCase().includes(variant)
-                        );
-                        return isAInput === isBInput ? 0 : isAInput ? -1 : 1;
-                      })
-                      .map((ingredient: any, index: number) => {
-                        if (disableIngredientColor) {
-                          return (
-                            <li
-                              key={`${ingredient.id}-${index}`}
-                              className="flex items-center gap-2 text-sm text-gray-700"
-                            >
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-md font-semibold mb-2">Available Ingredients</h3>
+                      <ul className="space-y-1.5">
+                        {recipe.extendedIngredients
+                          ?.filter((ingredient: any) => 
+                            ingredientVariants.some((variant) => 
+                              ingredient.name.toLowerCase().includes(variant)
+                            )
+                          )
+                          .map((ingredient: any) => (
+                            <li key={ingredient.id} className="flex items-center gap-2 text-sm">
                               <span>•</span>
                               <span>{ingredient.original}</span>
                             </li>
-                          );
-                        }
-
-                        const isInputIngredient = ingredientVariants.some(
-                          (variant) =>
-                            ingredient.name.toLowerCase().includes(variant)
-                        );
-
-                        return (
-                          <li
-                            key={ingredient.id}
-                            className={cn(
-                              'flex items-center gap-2 text-sm',
-                              isInputIngredient
-                                ? 'text-green-600'
-                                : 'text-red-600'
-                            )}
-                          >
-                            <span>•</span>
-                            <span>{ingredient.original}</span>
-                          </li>
-                        );
-                      })}
-                  </ul>
+                          ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-md font-semibold mb-2">Missing Ingredients</h3>
+                      <ul className="space-y-1.5">
+                        {recipe.extendedIngredients
+                          ?.filter((ingredient: any) => 
+                            !ingredientVariants.some((variant) => 
+                              ingredient.name.toLowerCase().includes(variant)
+                            )
+                          )
+                          .map((ingredient: any) => (
+                            <li key={ingredient.id} className="flex items-center gap-2 text-sm">
+                              <span>•</span>
+                              <span>{ingredient.original}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
 
