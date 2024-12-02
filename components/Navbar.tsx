@@ -10,7 +10,7 @@ const Navbar = () => {
   const { data: session } = useSession();
 
   return (
-    <nav className="w-full bg-transparent border-b border-indigo-100 sticky top-0 z-50">
+    <nav className="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 border-b border-indigo-100 sticky top-0 z-50 backdrop-blur-sm">
       <div className="max-w-[1400px] mx-auto px-4 flex h-16 items-center justify-between">
         <Link 
           href="/" 
