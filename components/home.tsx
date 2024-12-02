@@ -290,195 +290,195 @@ export default function RecipeGenerator() {
 
 
 
-return (
-  <div className="h-[100vh] bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-    <Navbar />
-    <div className="container w-[70vw] mt-10">
-      <div className="max-w-[1400px] mx-auto">
-        <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
-          <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
-            <CardTitle className="text-2xl font-semibold text-gray-800">Recipe Generator</CardTitle>
-            <CardDescription className="text-gray-600">
-              Let&apos;s turn your available ingredients into amazing recipes
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <Tabs defaultValue="ingredients" className="space-y-6">
-              <TabsList className="grid grid-cols-2 gap-4 bg-indigo-50/50 p-1">
-                <TabsTrigger 
-                  value="ingredients" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
-                >
-                  <Utensils className="h-4 w-4 mr-2" />
-                  Ingredients
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="preferences"
-                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
-                >
-                  <Settings2 className="h-4 w-4 mr-2" />
-                  Preferences
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="ingredients" className="space-y-6">
-                <div className="grid gap-6">
-                  <ImageUpload
-                    imagePreview={imagePreview}
-                    isRecipeGenerated={isRecipeGenerated}
-                    isImageProcessing={isImageProcessing}
-                    error={imageError}
-                    onImageUpload={handleImageUpload}
-                    onImageRemove={handleImageRemove}
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={currentIngredient}
-                      onChange={(e) => setCurrentIngredient(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddIngredient();
-                        }
-                      }}
-                      placeholder="Enter an ingredient"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      disabled={isRecipeGenerated}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex flex-col">
+      <Navbar />
+      <div className="container w-[70vw] mt-10 flex-grow">
+        <div className="max-w-[1400px] mx-auto">
+          <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
+            <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+              <CardTitle className="text-2xl font-semibold text-gray-800">Recipe Generator</CardTitle>
+              <CardDescription className="text-gray-600">
+                Let&apos;s turn your available ingredients into amazing recipes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <Tabs defaultValue="ingredients" className="space-y-6">
+                <TabsList className="grid grid-cols-2 gap-4 bg-indigo-50/50 p-1">
+                  <TabsTrigger 
+                    value="ingredients" 
+                    className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+                  >
+                    <Utensils className="h-4 w-4 mr-2" />
+                    Ingredients
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="preferences"
+                    className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+                  >
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Preferences
+                  </TabsTrigger>
+                </TabsList>
+  
+                <TabsContent value="ingredients" className="space-y-6">
+                  <div className="grid gap-6">
+                    <ImageUpload
+                      imagePreview={imagePreview}
+                      isRecipeGenerated={isRecipeGenerated}
+                      isImageProcessing={isImageProcessing}
+                      error={imageError}
+                      onImageUpload={handleImageUpload}
+                      onImageRemove={handleImageRemove}
                     />
-                    <Button
-                      onClick={handleAddIngredient}
-                      disabled={isRecipeGenerated || !currentIngredient.trim()}
-                      className="bg-indigo-600 hover:bg-indigo-700"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {ingredients.map((ingredient, index) => (
-                      <div
-                        key={index}
-                        className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={currentIngredient}
+                        onChange={(e) => setCurrentIngredient(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleAddIngredient();
+                          }
+                        }}
+                        placeholder="Enter an ingredient"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        disabled={isRecipeGenerated}
+                      />
+                      <Button
+                        onClick={handleAddIngredient}
+                        disabled={isRecipeGenerated || !currentIngredient.trim()}
+                        className="bg-indigo-600 hover:bg-indigo-700"
                       >
-                        {ingredient}
-                        <button
-                          onClick={() => handleRemoveIngredient(index)}
-                          className="ml-1 hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
-                          disabled={isRecipeGenerated}
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {ingredients.map((ingredient, index) => (
+                        <div
+                          key={index}
+                          className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
                         >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                          {ingredient}
+                          <button
+                            onClick={() => handleRemoveIngredient(index)}
+                            className="ml-1 hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
+                            disabled={isRecipeGenerated}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="preferences" className="space-y-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-base font-medium text-gray-700">
-                      Maximum Additional Ingredients: {maxAdditionalIngredients}
-                    </Label>
-                    <Slider
-                      value={[maxAdditionalIngredients]}
-                      onValueChange={(value) => setMaxAdditionalIngredients(value[0])}
-                      min={0}
-                      max={10}
-                      step={1}
-                      disabled={isRecipeGenerated}
-                      className="py-4"
-                    />
-                    <p className="text-sm text-gray-500">
-                      Limit the number of non-inputted ingredients needed for recipes
-                    </p>
+                </TabsContent>
+  
+                <TabsContent value="preferences" className="space-y-8">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium text-gray-700">
+                        Maximum Additional Ingredients: {maxAdditionalIngredients}
+                      </Label>
+                      <Slider
+                        value={[maxAdditionalIngredients]}
+                        onValueChange={(value) => setMaxAdditionalIngredients(value[0])}
+                        min={0}
+                        max={10}
+                        step={1}
+                        disabled={isRecipeGenerated}
+                        className="py-4"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Limit the number of non-inputted ingredients needed for recipes
+                      </p>
+                    </div>
+  
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium text-gray-700">
+                        Max Number of Recipes: {numRecipes}
+                      </Label>
+                      <Slider
+                        value={[numRecipes]}
+                        onValueChange={(value) => setNumRecipes(value[0])}
+                        min={1}
+                        max={5}
+                        step={1}
+                        disabled={isRecipeGenerated}
+                        className="py-4"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Choose up to how many recipe suggestions you&apos;d like to receive
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <Label className="text-base font-medium text-gray-700">
-                      Max Number of Recipes: {numRecipes}
-                    </Label>
-                    <Slider
-                      value={[numRecipes]}
-                      onValueChange={(value) => setNumRecipes(value[0])}
-                      min={1}
-                      max={5}
-                      step={1}
-                      disabled={isRecipeGenerated}
-                      className="py-4"
-                    />
-                    <p className="text-sm text-gray-500">
-                      Choose upto how many recipe suggestions you&apos;d like to receive
-                    </p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <div className="mt-8 pt-6 border-t border-indigo-50">
-              {!isRecipeGenerated ? (
-                <Button
-                  onClick={handleGenerateRecipe}
-                  disabled={ingredients.length == 0 || loading || isImageProcessing}
-                  className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
-                >
-                  {isImageProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing Image...
-                    </>
-                  ) : loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Generating Recipes...
-                    </>
-                  ) : (
-                    <>
-                      <ChefHat className="mr-2 h-5 w-5" />
-                      Generate Recipes
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNewRecipe}
-                  variant="outline"
-                  className="w-full h-12 text-base border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-all"
-                >
-                  Start New Recipe Search
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {error && (
-          <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {editingRecipe ? (
-          <EditRecipeCard
-            recipe={editingRecipe}
-            onSave={handleSaveEditedRecipe}
-            onCancel={handleCancelEdit}
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {recipes.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              isFavorited={favoritedRecipes.has(recipe.id)}
-              onFavoriteToggle={handleFavoriteToggle}
-              ingredientVariants={ingredientVariants}
-              onEditRecipe={handleEditRecipe}
+                </TabsContent>
+              </Tabs>
+  
+              <div className="mt-8 pt-6 border-t border-indigo-50">
+                {!isRecipeGenerated ? (
+                  <Button
+                    onClick={handleGenerateRecipe}
+                    disabled={ingredients.length == 0 || loading || isImageProcessing}
+                    className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
+                  >
+                    {isImageProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing Image...
+                      </>
+                    ) : loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Generating Recipes...
+                      </>
+                    ) : (
+                      <>
+                        <ChefHat className="mr-2 h-5 w-5" />
+                        Generate Recipes
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNewRecipe}
+                    variant="outline"
+                    className="w-full h-12 text-base border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-all"
+                  >
+                    Start New Recipe Search
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+  
+          {error && (
+            <Alert variant="destructive" className="mb-8">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+  
+          {editingRecipe ? (
+            <EditRecipeCard
+              recipe={editingRecipe}
+              onSave={handleSaveEditedRecipe}
+              onCancel={handleCancelEdit}
             />
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {recipes.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  isFavorited={favoritedRecipes.has(recipe.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  ingredientVariants={ingredientVariants}
+                  onEditRecipe={handleEditRecipe}
+                />
+              ))}
+            </div>
+          )}
         </div>
-        )}
       </div>
     </div>
-  </div>
-);
+  );
 }

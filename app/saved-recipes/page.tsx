@@ -61,10 +61,12 @@ function SavedRecipesPage() {
   if (!session) return <p>You need to be logged in to view this page.</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
       <Navbar />
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-center mb-8">Favorite Recipes</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          Favorite Recipes
+        </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {recipes.length > 0 ? (
             recipes.map((recipe) => (
@@ -78,7 +80,7 @@ function SavedRecipesPage() {
               />
             ))
           ) : (
-            <p className="text-center">No saved recipes found.</p>
+            <p className="text-center text-gray-600">No saved recipes found.</p>
           )}
         </div>
       </div>
@@ -87,3 +89,4 @@ function SavedRecipesPage() {
 }
 
 export default SavedRecipesPage;
+
