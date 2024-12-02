@@ -54,18 +54,22 @@ const ContactPage = () => {
   };
 
   return (
-    <div style={contactStyles.container}>
-      <Card style={contactStyles.card}>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-[650px] bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle style={contactStyles.heading}>Contact Us</CardTitle>
-          <CardDescription style={contactStyles.description}>If you have any questions, feedback, or bug reports, feel free to reach out to the developers of Pantry Pal!</CardDescription>
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Contact Us
+          </CardTitle>
+          <CardDescription className="text-lg text-gray-600">
+            If you have any questions, feedback, or bug reports, feel free to reach out to the developers of Pantry Pal!
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} style={contactStyles.form}>
-            <div style={contactStyles.inputGroup}>
-              <label htmlFor="name" style={contactStyles.label}>
-                <User size={20} style={contactStyles.icon} /> Name:
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="name" className="flex items-center gap-2 text-lg font-medium text-gray-700">
+                <User className="w-5 h-5 text-indigo-600" /> Name:
               </label>
               <Input
                 type="text"
@@ -73,14 +77,14 @@ const ContactPage = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                style={contactStyles.input}
+                className="p-3 text-lg rounded-lg"
                 required
               />
             </div>
 
-            <div style={contactStyles.inputGroup}>
-              <label htmlFor="email" style={contactStyles.label}>
-                <Mail size={20} style={contactStyles.icon} /> Email (Optional):
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="flex items-center gap-2 text-lg font-medium text-gray-700">
+                <Mail className="w-5 h-5 text-indigo-600" /> Email (Optional):
               </label>
               <Input
                 type="email"
@@ -88,35 +92,38 @@ const ContactPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                style={contactStyles.input}
+                className="p-3 text-lg rounded-lg"
               />
             </div>
 
-            <div style={contactStyles.inputGroup}>
-              <label htmlFor="message" style={contactStyles.label}>
-                <MessageCircle size={20} style={contactStyles.icon} /> Message:
+            <div className="flex flex-col gap-2">
+              <label htmlFor="message" className="flex items-center gap-2 text-lg font-medium text-gray-700">
+                <MessageCircle className="w-5 h-5 text-indigo-600" /> Message:
               </label>
               <textarea
                 id="message"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                style={contactStyles.textarea}
+                className="p-3 text-lg rounded-lg border border-gray-200 focus:border-indigo-600 outline-none min-h-[150px] resize-y"
                 required
               />
             </div>
 
-            <Button type="submit" style={contactStyles.contactButton}>
+            <Button 
+              type="submit" 
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 text-lg rounded-lg"
+            >
               Send Message
             </Button>
           </form>
 
           {status && (
-            <div style={contactStyles.statusMessage}>
+            <div className="mt-4 flex items-center justify-center text-lg font-semibold">
               {status.includes('sent') ? (
-                <CheckCircle size={20} style={{ color: '#28a745', marginRight: '8px' }} />
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
               ) : (
-                <XCircle size={20} style={{ color: '#dc3545', marginRight: '8px' }} />
+                <XCircle className="w-5 h-5 text-red-500 mr-2" />
               )}
               {status}
             </div>
