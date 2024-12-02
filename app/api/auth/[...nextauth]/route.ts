@@ -78,7 +78,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Pass the authOptions to NextAuth
+// Correct usage of NextAuth with Next.js app directory routing
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
