@@ -280,6 +280,8 @@ export default function RecipeGenerator() {
         recipe.id === editedRecipe.id ? editedRecipe : recipe
       )
     );
+    setIngredients(editedRecipe.extendedIngredients.map((ing: any) => ing.name));
+
     setEditingRecipe(null);
   };
 

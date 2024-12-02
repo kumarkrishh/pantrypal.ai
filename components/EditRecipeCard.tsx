@@ -9,6 +9,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
+import { useCallback } from 'react';
+
+
 
 
 const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
@@ -90,14 +93,18 @@ export default function EditRecipeCard({
     };
 
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditedRecipe((prev: any) => ({ ...prev, [name]: value }));
-  };
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setEditedRecipe((prev: any) => ({ ...prev, [name]: value }));
+    }, [setEditedRecipe]); // Include all dependencies used inside the callback
 
-  const handleSave = () => {
-    onSave(editedRecipe);
-  };
+    const handleSave = () => {
+      const updatedRecipe = {
+        ...editedRecipe,
+        extendedIngredients: ingredients,
+      };
+      onSave(updatedRecipe);
+    };
 
   return (
     <Card className="fixed inset-0 z-50 overflow-auto bg-white">
@@ -123,7 +130,7 @@ export default function EditRecipeCard({
         <div className="w-1/2 pl-4">
           <h3 className="text-xl font-semibold mb-2">Ingredients</h3>
           {ingredients.map((ingredient: any, index: any) => (
-            <div key={`${ingredient.id}-${uuidv4()}`} className="flex items-center mb-2">
+            <div key={ingredient.id} className="flex items-center mb-2">
               <Checkbox
                 checked={ingredient.selected}
                 onCheckedChange={() => handleIngredientToggle(index)}
