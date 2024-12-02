@@ -29,13 +29,13 @@ const ContactPage = () => {
     e.preventDefault();
 
     // EmailJS service and template ID
-    const serviceId = 'your_service_id';  // Replace with EmailJS service ID
-    const templateId = 'your_template_id';  // Replace with EmailJS template ID
-    const userId = 'your_user_id';  // Replace with EmailJS user ID
+    const serviceId = process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID!; // Replace with EmailJS service ID
+    const templateId = process.env.NEXT_PUBLIC_EMAIL_JS_TEMPLATE_ID!;  // Replace with EmailJS template ID
+    const userId = process.env.NEXT_PUBLIC_EMAIL_JS_USER_ID!;  // Replace with EmailJS user ID
 
     const templateParams = {
-      name: formData.name,
-      email: formData.email,
+      from_name: formData.name,
+      from_email: formData.email,
       message: formData.message,
     };
 
