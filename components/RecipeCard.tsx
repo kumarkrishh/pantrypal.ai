@@ -1,8 +1,9 @@
+// RecipeCard.tsx
+
 'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Card,
@@ -36,8 +37,8 @@ export default function RecipeCard({
   isFavorited,
   onFavoriteToggle,
   ingredientVariants = [],
-  disableIngredientColor = false, 
-  onEditRecipe
+  disableIngredientColor = false,
+  onEditRecipe,
 }: RecipeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -163,43 +164,73 @@ export default function RecipeCard({
               <AccordionItem value="ingredients">
                 <AccordionTrigger>Ingredients</AccordionTrigger>
                 <AccordionContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-md font-semibold mb-2">Available Ingredients</h3>
-                      <ul className="space-y-1.5">
-                        {recipe.extendedIngredients
-                          ?.filter((ingredient: any) => 
-                            ingredientVariants.some((variant) => 
-                              ingredient.name.toLowerCase().includes(variant)
+                  {disableIngredientColor || ingredientVariants.length === 0 ? (
+                    // Display all ingredients together
+                    <ul className="space-y-1.5">
+                      {recipe.extendedIngredients?.map((ingredient: any) => (
+                        <li
+                          key={ingredient.id}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <span>•</span>
+                          <span>{ingredient.original}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    // Separate ingredients into Available and Missing
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">
+                          Available Ingredients
+                        </h3>
+                        <ul className="space-y-1.5">
+                          {recipe.extendedIngredients
+                            ?.filter((ingredient: any) =>
+                              ingredientVariants.some((variant) =>
+                                ingredient.name
+                                  .toLowerCase()
+                                  .includes(variant)
+                              )
                             )
-                          )
-                          .map((ingredient: any) => (
-                            <li key={ingredient.id} className="flex items-center gap-2 text-sm">
-                              <span>•</span>
-                              <span>{ingredient.original}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-md font-semibold mb-2">Missing Ingredients</h3>
-                      <ul className="space-y-1.5">
-                        {recipe.extendedIngredients
-                          ?.filter((ingredient: any) => 
-                            !ingredientVariants.some((variant) => 
-                              ingredient.name.toLowerCase().includes(variant)
+                            .map((ingredient: any) => (
+                              <li
+                                key={ingredient.id}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <span>•</span>
+                                <span>{ingredient.original}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">
+                          Missing Ingredients
+                        </h3>
+                        <ul className="space-y-1.5">
+                          {recipe.extendedIngredients
+                            ?.filter((ingredient: any) =>
+                              !ingredientVariants.some((variant) =>
+                                ingredient.name
+                                  .toLowerCase()
+                                  .includes(variant)
+                              )
                             )
-                          )
-                          .map((ingredient: any) => (
-                            <li key={ingredient.id} className="flex items-center gap-2 text-sm">
-                              <span>•</span>
-                              <span>{ingredient.original}</span>
-                            </li>
-                          ))}
-                      </ul>
+                            .map((ingredient: any) => (
+                              <li
+                                key={ingredient.id}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <span>•</span>
+                                <span>{ingredient.original}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
 
@@ -207,11 +238,13 @@ export default function RecipeCard({
                 <AccordionTrigger>Instructions</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2">
-                    {recipe.instructions?.split('\n').map((step: string, index: number) => (
-                      <p key={index} className="text-sm">
-                        {step.trim()}
-                      </p>
-                    ))}
+                    {recipe.instructions
+                      ?.split('\n')
+                      .map((step: string, index: number) => (
+                        <p key={index} className="text-sm">
+                          {step.trim()}
+                        </p>
+                      ))}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -225,7 +258,6 @@ export default function RecipeCard({
             >
               Edit Recipe
             </Button>
-
           </div>
         )}
       </CardContent>
