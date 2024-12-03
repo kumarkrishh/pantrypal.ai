@@ -293,7 +293,11 @@ export default function RecipeGenerator() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex flex-col">
+    {/* Navbar should be a full-width element */}
+    <div className="container w-[100vw]">
       <Navbar />
+    </div>
+    <div className="container w-[100vw] flex justify-center">
       <div className="container w-[70vw] mt-10 pb-20">
         <div className="max-w-[1400px] mx-auto">
           <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
@@ -480,6 +484,7 @@ export default function RecipeGenerator() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
