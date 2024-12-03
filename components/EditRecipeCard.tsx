@@ -10,9 +10,6 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import OpenAI from 'openai';
 import { useCallback } from 'react';
 
-
-
-
 const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
   let openai: OpenAI;
   if (openaiKey) {
@@ -72,7 +69,11 @@ export default function EditRecipeCard({
             },
             {
               role: "user",
-              content: `Update the following recipe with these new ingredients: ${selectedIngredients.map((ing: { original: any; }) => ing.original).join(', ')}. Original recipe: ${editedRecipe.instructions}. Strictly include the ingredient amount values and only use the new ingredients in the instructions. Stricly just write out the instructions very descriptively, nothing else.`
+              content: `Here is the original recipe: ${editedRecipe.instructions}. \
+              Here are the only ingredients we have: ${selectedIngredients.map((ing: { original: any; }) => ing.original).join(', ')}. \
+              Edit the recipe as little as possible with these new ingredients. Make sure not to include any ingredient not in the list.\
+              Strictly include the ingredient amount values and only use the new ingredients in the instructions. \
+              Stricly just write out the instructions very descriptively, nothing else.`
             }
           ],
           temperature: 0.7,
@@ -97,13 +98,37 @@ export default function EditRecipeCard({
       setEditedRecipe((prev: any) => ({ ...prev, [name]: value }));
     }, [setEditedRecipe]); // Include all dependencies used inside the callback
 
-    const handleSave = () => {
-      const updatedRecipe = {
-        ...editedRecipe,
-        extendedIngredients: ingredients,
-      };
-      onSave(updatedRecipe);
-    };
+const handleSave = async () => {
+  const { _id, ...recipeToUpdate } = editedRecipe; // Exclude _id
+
+  const updatedRecipe = {
+    ...recipeToUpdate,
+    extendedIngredients: ingredients,
+  };
+
+  try {
+    const response = await fetch('/api/updateRecipe', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedRecipe),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Update successful
+      console.log('Recipe updated successfully:', data);
+      onSave(updatedRecipe); // Optionally update parent state or close modal
+    } else {
+      // Handle error
+      console.error('Failed to update recipe:', data.error);
+    }
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+  }
+};
 
   return (
     <Card className="fixed inset-0 z-50 overflow-auto bg-white">
@@ -139,9 +164,9 @@ export default function EditRecipeCard({
                 onChange={(e) => handleIngredientEdit(index, e.target.value)}
                 className={`ml-2 flex-grow ${!ingredient.selected ? 'text-gray-400' : ''}`}
               />
-              <Button variant="ghost" size="sm">
+              {/* <Button variant="ghost" size="sm">
                 <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
           ))}
           <Button onClick={handleAddIngredient} className="mt-2">
@@ -156,7 +181,7 @@ export default function EditRecipeCard({
         <Button onClick={onCancel} variant="outline" className="mr-2">
           Cancel
         </Button>
-        <Button onClick={() => onSave(editedRecipe)}>Save Changes</Button>
+        <Button onClick={handleSave}>Save Changes</Button>
       </div>
     </Card>
   );
