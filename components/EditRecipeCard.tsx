@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import OpenAI from 'openai';
 import { useCallback } from 'react';
 
@@ -53,6 +53,14 @@ export default function EditRecipeCard({
       setIngredients([...ingredients, { id: Date.now(), original: '', selected: true }]);
     };
 
+    const handleRemoveIngredient = (index: number) => {
+      setIngredients((prevIngredients: any) => {
+        const updatedIngredients = [...prevIngredients];
+        updatedIngredients.splice(index, 1);
+        return updatedIngredients;
+      });
+    };
+
     const handleUpdateRecipe = async () => {
       // console.log('Updating recipe...');
       // console.log('Ingredients:', ingredients);
@@ -91,7 +99,6 @@ export default function EditRecipeCard({
         console.error('Error updating recipe:', error);
       }
     };
-
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -164,9 +171,13 @@ const handleSave = async () => {
                 onChange={(e) => handleIngredientEdit(index, e.target.value)}
                 className={`ml-2 flex-grow ${!ingredient.selected ? 'text-gray-400' : ''}`}
               />
-              {/* <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button> */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemoveIngredient(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))}
           <Button onClick={handleAddIngredient} className="mt-2">
