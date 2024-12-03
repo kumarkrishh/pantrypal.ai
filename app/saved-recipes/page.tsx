@@ -5,11 +5,13 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import Navbar from '../../components/Navbar';
 import RecipeCard from '../../components/RecipeCard';
+import EditRecipeCard from '@/components/EditRecipeCard';
 
 function SavedRecipesPage() {
   const { data: session, status } = useSession();
   const [recipes, setRecipes] = useState<any[]>([]);
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
+  const [editingRecipe, setEditingRecipe] = useState<any | null>(null);
 
   useEffect(() => {
     if (session) {
@@ -57,6 +59,23 @@ function SavedRecipesPage() {
     }
   };
 
+  const handleEditRecipe = (recipe: any) => {
+    setEditingRecipe(recipe);
+  };
+
+  const handleSaveEditedRecipe = (editedRecipe: any) => {
+    setRecipes(prevRecipes => 
+      prevRecipes.map(recipe => 
+        recipe.id === editedRecipe.id ? editedRecipe : recipe
+      )
+    );
+    setEditingRecipe(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecipe(null);
+  };
+
   if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>You need to be logged in to view this page.</p>;
 
@@ -67,26 +86,35 @@ function SavedRecipesPage() {
         <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
           Favorite Recipes
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {recipes.length > 0 ? (
-            recipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                isFavorited={true}
-                onFavoriteToggle={handleFavoriteToggle}
-                ingredientVariants={[]}
-                disableIngredientColor={true}
-              />
-            ))
-          ) : (
-            <p className="text-center text-gray-600">No saved recipes found.</p>
-          )}
-        </div>
+
+        {editingRecipe ? (
+          <EditRecipeCard
+            recipe={editingRecipe}
+            onSave={handleSaveEditedRecipe}
+            onCancel={handleCancelEdit}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {recipes.length > 0 ? (
+              recipes.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  isFavorited={true}
+                  onFavoriteToggle={handleFavoriteToggle}
+                  ingredientVariants={[]}
+                  disableIngredientColor={true}
+                  onEditRecipe={handleEditRecipe}
+                />
+              ))
+            ) : (
+              <p className="text-center text-gray-600">No saved recipes found.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 export default SavedRecipesPage;
-
