@@ -21,6 +21,15 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center space-x-1">
+          <Link href="/">
+            <Button
+              variant="ghost"
+              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Recipe Generator
+            </Button>
+          </Link>
           <Link href="/saved-recipes">
             <Button
               variant="ghost"
