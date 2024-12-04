@@ -50,6 +50,9 @@ npm run dev
 
 The app will be visible at [http://localhost:3000](http://localhost:3000), or another port as specified, in your browser
 
+### Important Note: 
+- Make sure that you are on eduroam wifi for full functionality (as opposed to UCLA_WEB or UCLA_WIFI)
+
 ---
 ## Project Contributors:
 - Krish Kumar (kumarkrishh)
