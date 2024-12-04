@@ -1,6 +1,3 @@
-
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,7 +32,7 @@ export default function RecipeGenerator() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [isRecipeGenerated, setIsRecipeGenerated] = useState(false);
   const [maxAdditionalIngredients, setMaxAdditionalIngredients] = useState(5);
-  const [numRecipes, setNumRecipes] = useState(1);
+  const [numRecipes, setNumRecipes] = useState(3);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
@@ -460,7 +457,7 @@ const handleGenerateRecipe = async () => {
       <div className="max-w-[70vw] mx-auto">
         <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
           <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
-            <CardTitle className="text-2xl font-semibold text-gray-800">Recipe Generator</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-gray-800">AI Recipe Generator</CardTitle>
             <CardDescription className="text-gray-600">
               Let&apos;s turn your available ingredients into amazing recipes
             </CardDescription>

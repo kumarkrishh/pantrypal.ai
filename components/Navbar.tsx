@@ -17,7 +17,7 @@ const Navbar = () => {
           className="flex items-center space-x-2 text-xl font-bold"
         >
           <ChefHat className="h-6 w-6 text-indigo-600" />
-          <span className="text-indigo-600">RecipeAI</span>
+          <span className="text-indigo-600">PantryPal</span>
         </Link>
 
         <div className="hidden md:flex items-center space-x-1">
