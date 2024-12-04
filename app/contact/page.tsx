@@ -5,6 +5,7 @@ import { User, Mail, MessageCircle, CheckCircle, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import Navbar from '@/components/Navbar';
 
 const ContactPage = () => {
   const email = 'pantrypalproject@gmail.com';
@@ -54,7 +55,11 @@ const ContactPage = () => {
   };
 
   return (
+    <div className="min-h-screen flex flex-col">
+
+    
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex flex-col items-center justify-center p-4">
+       <Navbar />
       <Card className="w-full max-w-[650px] bg-white/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -130,6 +135,7 @@ const ContactPage = () => {
           )}
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 };
