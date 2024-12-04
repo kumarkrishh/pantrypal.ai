@@ -84,77 +84,231 @@ export default function RecipeGenerator() {
     }
   };
 
-  const handleGenerateRecipe = async () => {
-    if (ingredients.length === 0) {
-      setError('Please enter ingredients or upload an image');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    setRecipes([]);
+//   const handleGenerateRecipe = async () => {
+//     if (ingredients.length === 0) {
+//       //setError('Please enter ingredients or upload an image');
+//       return;
+//     }
+//     setLoading(true);
+//     setError('');
+//     setRecipes([]);
   
-    // let successfulRequest = false;
-    for (let i = 0; i < apiKey.length; i++) {
-      try {
-        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-          params: {
-            ingredients: ingredients.join(','),
-            number: numRecipes,
-            ranking: 1,
-            apiKey: apiKey[i],
-          },
-        });
+//     // let successfulRequest = false;
+//     for (let i = 0; i < apiKey.length; i++) {
+//       try {
+//         const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+//           params: {
+//             ingredients: ingredients.join(','),
+//             number: numRecipes,
+//             ranking: 1,
+//             apiKey: apiKey[i],
+//           },
+//         });
   
-        if (response.data.length === 0) {
-          setError('No recipes found, try a new recipe search');
-          setRecipes([]);
-          setLoading(true);
-          setIsRecipeGenerated(false)
-        }
+//         if (response.data.length === 0) {
+//           alert('No recipes found, try a new recipe search');
+//           setRecipes([]);
+//           setLoading(true);
+//           setIsRecipeGenerated(false)
+//         }
   
-        const recipeDetails = await Promise.all(
-          response.data.map(async (recipe: any) => {
-            const [details, nutrition] = await Promise.all([
-              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-                params: { apiKey: apiKey[i] },
-              }),
-              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-                params: { apiKey: apiKey[i] },
-              }),
-            ]);
+//         const recipeDetails = await Promise.all(
+//           response.data.map(async (recipe: any) => {
+//             const [details, nutrition] = await Promise.all([
+//               axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+//                 params: { apiKey: apiKey[i] },
+//               }),
+//               axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+//                 params: { apiKey: apiKey[i] },
+//               }),
+//             ]);
   
-            const formattedInstructions = await formatInstructions(details.data.instructions);
+//             const formattedInstructions = await formatInstructions(details.data.instructions);
   
-            return {
-              ...details.data,
-              instructions: formattedInstructions,
-              nutrition: nutrition.data
-            };
-          })
-        );
+//             return {
+//               ...details.data,
+//               instructions: formattedInstructions,
+//               nutrition: nutrition.data
+//             };
+//           })
+//         );
 
-        const recipesWithStringIds = recipeDetails.map((recipe) => ({
-            ...recipe,
-            id: recipe.id.toString(),
-          }));
-        setRecipes(recipesWithStringIds);
+//         const recipesWithStringIds = recipeDetails.map((recipe) => ({
+//             ...recipe,
+//             id: recipe.id.toString(),
+//           }));
+//         setRecipes(recipesWithStringIds);
   
-        setIsRecipeGenerated(true);
-        // successfulRequest = true;
-        break;
-      } catch (err) {
-        console.error(`API Key #${i + 1} failed. Trying the next key...`);
+//         setIsRecipeGenerated(true);
+//         // successfulRequest = true;
+//         break;
+//       } catch (err) {
+//         console.error(`API Key #${i + 1} failed. Trying the next key...`);
+//       }
+//     }
+  
+// /*
+//     if (!successfulRequest) {
+//       setError('Failed to fetch recipes after trying all available API keys');
+//     }
+//     */
+  
+//     setLoading(false);
+//   };
+
+// const handleGenerateRecipe = async () => {
+//   if (ingredients.length === 0) {
+//     return;
+//   }
+//   setLoading(true);
+//   setError('');
+//   setRecipes([]);
+
+//   for (let i = 0; i < apiKey.length; i++) {
+//     try {
+//       const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+//         params: {
+//           ingredients: ingredients.join(','),
+//           number: numRecipes,
+//           ranking: 1,
+//           apiKey: apiKey[i],
+//         },
+//       });
+
+//       if (response.data.length === 0) {
+//         alert('No recipes found, try a new recipe search');
+//         setRecipes([]);
+//         setLoading(false);
+//         setIsRecipeGenerated(false);
+//         return;
+//       }
+
+//       const recipeDetails = await Promise.all(
+//         response.data.map(async (recipe: any) => {
+//           const [details, nutrition] = await Promise.all([
+//             axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+//               params: { apiKey: apiKey[i] },
+//             }),
+//             axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+//               params: { apiKey: apiKey[i] },
+//             }),
+//           ]);
+
+//           const formattedInstructions = await formatInstructions(details.data.instructions);
+
+//           // Calculate additional ingredients
+//           const additionalIngredients = recipe.usedIngredients.filter((ingredient: any) =>
+//             !ingredients.includes(ingredient.name)
+//           );
+
+//           if (additionalIngredients.length > maxAdditionalIngredients) {
+//             return null;  // This recipe exceeds the max additional ingredients
+//           }
+
+//           return {
+//             ...details.data,
+//             instructions: formattedInstructions,
+//             nutrition: nutrition.data,
+//           };
+//         })
+//       );
+
+//       // Filter out null recipes
+//       const validRecipes = recipeDetails.filter((recipe) => recipe !== null);
+
+//       setRecipes(validRecipes);
+//       setIsRecipeGenerated(true);
+//       break;
+//     } catch (err) {
+//       console.error(`API Key #${i + 1} failed. Trying the next key...`);
+//     }
+//   }
+
+//   setLoading(false);
+// };
+
+const handleGenerateRecipe = async () => {
+  if (ingredients.length === 0) {
+    //setError('Please enter ingredients or upload an image');
+    return;
+  }
+  setLoading(true);
+  setError('');
+  setRecipes([]);
+
+  let validRecipes = [];
+
+  for (let i = 0; i < apiKey.length; i++) {
+    try {
+      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+        params: {
+          ingredients: ingredients.join(','),
+          number: numRecipes,
+          ranking: 1,
+          apiKey: apiKey[i],
+        },
+      });
+
+      if (response.data.length === 0) {
+        alert('No recipes found, try a new recipe search');
+        setRecipes([]);
+        setLoading(true);
+        setIsRecipeGenerated(false);
+        return;
       }
+
+      const recipeDetails = await Promise.all(
+        response.data.map(async (recipe: { id: any; usedIngredients: string | any[]; missingIngredients: string | any[]; }) => {
+          const [details, nutrition] = await Promise.all([
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+              params: { apiKey: apiKey[i] },
+            }),
+            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+              params: { apiKey: apiKey[i] },
+            }),
+          ]);
+
+          const formattedInstructions = await formatInstructions(details.data.instructions);
+
+          return {
+            ...details.data,
+            instructions: formattedInstructions,
+            nutrition: nutrition.data,
+            additionalIngredients: recipe.usedIngredients.length + recipe.missingIngredients.length, // This counts the total ingredients
+          };
+        })
+      );
+
+      // Filter recipes based on maxAdditionalIngredients
+      validRecipes = recipeDetails.filter((recipe) => {
+        return recipe.additionalIngredients <= maxAdditionalIngredients;
+      });
+
+      if (validRecipes.length >= numRecipes) {
+        break; // If we found enough valid recipes, break out of the loop
+      }
+
+    } catch (err) {
+      console.error(`API Key #${i + 1} failed. Trying the next key...`);
     }
-  
-/*
-    if (!successfulRequest) {
-      setError('Failed to fetch recipes after trying all available API keys');
-    }
-    */
-  
+  }
+
+  if (validRecipes.length === 0) {
+    setError('No valid recipes found with the given criteria');
     setLoading(false);
-  };
+    setIsRecipeGenerated(false);
+    return;
+  }
+
+  const recipesWithStringIds = validRecipes.map((recipe) => ({
+    ...recipe,
+    id: recipe.id.toString(),
+  }));
+
+  setRecipes(recipesWithStringIds);
+  setIsRecipeGenerated(true);
+  setLoading(false);
+};
 
   const handleNewRecipe = () => {
     setIngredients([]);
@@ -179,8 +333,18 @@ export default function RecipeGenerator() {
     try {
       const base64Image = await fileToBase64(file);
       const detectedIngredients = await processImageForIngredients(openai, base64Image);
-      if (detectedIngredients.length === 0) {
-        return;
+      if (detectedIngredients.length == 1) {
+        await new Promise<void>((resolve) => {
+          alert('No ingredients were found, try a new image.');
+          //setError('No ingredients were found, try a new image.');
+          resolve();
+        });
+        setSelectedImage(null);
+        setImagePreview(null);
+        setImageError(null);
+        setIsImageProcessing(false);
+        setCurrentIngredient('');
+    
       } else {
         setDetectedIngredients(detectedIngredients);
         setIngredients(prevIngredients => { 
@@ -405,7 +569,7 @@ export default function RecipeGenerator() {
                         value={[numRecipes]}
                         onValueChange={(value) => setNumRecipes(value[0])}
                         min={1}
-                        max={5}
+                        max={10}
                         step={1}
                         disabled={isRecipeGenerated}
                         className="py-4"
