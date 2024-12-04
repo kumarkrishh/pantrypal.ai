@@ -1,7 +1,7 @@
-# PantryPal.ai
+# PantryPal
 
 ## Description
-PantryPal.ai is your personal kitchen assistant, designed to help you create delicious recipes based on the ingredients you have on hand. Whether you're looking to minimize food waste, get creative in the kitchen, or simply find meal ideas quickly, PantryPal.ai makes it easy to cook smarter and tastier meals.
+PantryPal is your personal kitchen assistant, designed to help you create delicious recipes based on the ingredients you have on hand. Whether you're looking to minimize food waste, get creative in the kitchen, or simply find meal ideas quickly, PantryPal makes it easy to cook smarter and tastier meals.
 
 ---
 
@@ -12,10 +12,10 @@ PantryPal.ai is your personal kitchen assistant, designed to help you create del
   - Limit the number of recipes generated per query.  
 - Open AI API Integration:  
   - Enables ingredient input via image upload.  
-  - Adjusts recipes and ingredients based on user-defined constraints  
-- User Accounts: Create accounts manually or sign in with Google  
-- Recipe History: Access previously generated recipes  
-- Recipe Favorites: Favorite recipes for future reference  
+  - Edit recipe ingredients to match user constraints  
+- View additional information such as nutritional information, prep time, serving size, and diets 
+- Create accounts manually or sign in with Google
+  - Favorite recipes and associated information for future reference  
 
 ---
 
@@ -37,8 +37,14 @@ NEXTAUTH_URL=
 NEXTAUTH_SECRET=
 GOOGLE_CLIENT_ID=
 MONGODB_URI=
-NEXT_PUBLIC_SPOONACULAR_API_KEY=
+NEXT_PUBLIC_SPOONACULAR_API_KEY_1=
+NEXT_PUBLIC_SPOONACULAR_API_KEY_2=
+NEXT_PUBLIC_SPOONACULAR_API_KEY_3=
 NEXT_PUBLIC_GEMINI_API_KEY=
+NEXT_PUBLIC_OPENAI_API_KEY=
+NEXT_PUBLIC_EMAIL_JS_SERVICE_ID=
+NEXT_PUBLIC_EMAIL_JS_TEMPLATE_ID=
+NEXT_PUBLIC_EMAIL_JS_USER_ID=
 ```
 
 ### To run the Frontend (React):
@@ -51,7 +57,7 @@ npm run dev
 The app will be visible at [http://localhost:3000](http://localhost:3000), or another port as specified, in your browser
 
 ### Important Note: 
-- Make sure that you are on eduroam wifi for full functionality (as opposed to UCLA_WEB or UCLA_WIFI)
+- Make sure that you are on eduroam WiFi for full functionality (as opposed to UCLA_WEB or UCLA_WIFI)
 
 ---
 ## Project Contributors:
