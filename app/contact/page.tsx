@@ -65,7 +65,7 @@ const ContactPage = () => {
               Contact Us
             </CardTitle>
             <CardDescription className="text-base text-gray-600">
-              Have questions or feedback? We'd love to hear from you!
+              Have questions or feedback? We&apos;d love to hear from you!
             </CardDescription>
           </CardHeader>
 
