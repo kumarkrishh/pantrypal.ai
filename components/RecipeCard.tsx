@@ -188,9 +188,7 @@ export default function RecipeCard({
                           {recipe.extendedIngredients
                             ?.filter((ingredient: any) =>
                               ingredientVariants.some((variant) =>
-                                ingredient.name
-                                  .toLowerCase()
-                                  .includes(variant)
+                                ingredient.name?.toLowerCase().includes(variant)
                               )
                             )
                             .map((ingredient: any) => (
@@ -213,9 +211,7 @@ export default function RecipeCard({
                           {recipe.extendedIngredients
                             ?.filter((ingredient: any) =>
                               !ingredientVariants.some((variant) =>
-                                ingredient.name
-                                  .toLowerCase()
-                                  .includes(variant)
+                                ingredient.name?.toLowerCase().includes(variant)
                               )
                             )
                             .map((ingredient: any) => (
