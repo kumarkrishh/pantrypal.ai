@@ -1,4 +1,4 @@
-import RecipeGenerator from "@/components/home";
+import RecipeGenerator from "@/components/RecipeGenerator";
 import Navbar from "@/components/Navbar";
 
 export default function Home() {

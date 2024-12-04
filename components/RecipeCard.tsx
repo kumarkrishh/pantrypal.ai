@@ -1,10 +1,8 @@
-// RecipeCard.tsx
-
 'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -44,9 +42,26 @@ export default function RecipeCard({
 
   if (!recipe) return null;
 
+  const handleShare = async () => {
+    const shareData = {
+      title: recipe.title,
+      text: `Check out this recipe for ${recipe.title}!`,
+      url: recipe.sourceUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+      }
+    } catch (error) {
+    }
+  };
+
   return (
     <Card className="w-auto overflow-hidden transition-all hover:shadow-lg">
-      {/* Recipe Image and Favorite Button */}
+      {/* Recipe Image and Action Buttons */}
       <div className="relative aspect-video">
         <Image
           src={recipe.image}
@@ -55,19 +70,29 @@ export default function RecipeCard({
           className="object-cover"
           priority
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 bg-white/80 hover:bg-white/90 transition-colors"
-          onClick={() => onFavoriteToggle(recipe)}
-        >
-          <Heart
-            className={cn(
-              'h-5 w-5 transition-colors',
-              isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-500'
-            )}
-          />
-        </Button>
+        <div className="absolute top-2 right-2 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-white/80 hover:bg-white/90 transition-colors"
+            onClick={handleShare}
+          >
+            <Share2 className="h-5 w-5 text-gray-500" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-white/80 hover:bg-white/90 transition-colors"
+            onClick={() => onFavoriteToggle(recipe)}
+          >
+            <Heart
+              className={cn(
+                'h-5 w-5 transition-colors',
+                isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-500'
+              )}
+            />
+          </Button>
+        </div>
       </div>
 
       {/* Recipe Title and Basic Info */}
