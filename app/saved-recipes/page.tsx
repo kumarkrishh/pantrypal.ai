@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import RecipeCard from '../../components/RecipeCard';
 import EditRecipeCard from '@/components/EditRecipeCard';
@@ -12,9 +13,11 @@ function SavedRecipesPage() {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [favoritedRecipes, setFavoritedRecipes] = useState<Set<string>>(new Set());
   const [editingRecipe, setEditingRecipe] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (session) {
+      setIsLoading(true);
       axios
         .get("/api/getSavedRecipes")
         .then((res) => {
@@ -22,7 +25,12 @@ function SavedRecipesPage() {
           setRecipes(fetchedRecipes);
           setFavoritedRecipes(new Set(fetchedRecipes.map((recipe: any) => recipe.id)));
         })
-        .catch((err) => console.error(err));
+        .catch((err) => console.error(err))
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
     }
   }, [session]);
 
@@ -76,7 +84,17 @@ function SavedRecipesPage() {
     setEditingRecipe(null);
   };
 
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-16 w-16 mx-auto mb-4 text-indigo-500" />
+          <p className="text-gray-600">Loading your favorite recipes...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) return <p>You need to be logged in to view this page.</p>;
 
   return (
