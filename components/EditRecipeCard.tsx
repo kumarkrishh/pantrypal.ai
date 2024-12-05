@@ -100,15 +100,15 @@ export default function EditRecipeCard({
           },
           {
             role: 'user',
-            content: `
-              IGNORE PREVIOUS HISTORY. DO NOT USE INGREDIENTS OUTSIDE OF THE FOLLOWING LIST. 
-              Update the recipe using only these ingredients: ${selectedIngredients.map((ing: any) => ing.original).join(', ')}. 
-              - Use all allowed ingredients and maintain their amounts.
-              - Exclude or replace any disallowed ingredients.
-              - Provide concise step-by-step instructions only, without commentary or mentioning changes.
-              Original recipe: ${editedRecipe.instructions}`
-          }
-        ],        
+            content: `Here is the original recipe: ${editedRecipe.instructions}.
+            Here are the only ingredients we have: ${selectedIngredients
+              .map((ing: any) => ing.original)
+              .join(', ')}.
+            Edit the recipe as little as possible with these new ingredients. Make sure not to include any ingredient not in the list.
+            Strictly include the ingredient amount values and only use the new ingredients in the instructions.
+            Strictly just write out the instructions very descriptively, nothing else.`,
+          },
+        ],      
         temperature: 0.7,
         max_tokens: 500,
       });
