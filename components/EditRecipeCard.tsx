@@ -175,7 +175,7 @@ export default function EditRecipeCard({
       <Navbar />
       <div className="text-center">
         <CardHeader>
-          <CardTitle className="font-semibold text-3xl mb-3 text-indigo-600">
+          <CardTitle className="font-semibold text-4xl mb-2 bg-gradient-to-r from-purple-600 to-indigo-800 text-transparent bg-clip-text">
             Recipe for {editedRecipe.title}
           </CardTitle>
         </CardHeader>
@@ -193,7 +193,7 @@ export default function EditRecipeCard({
               </div>
             )}
             {/* Display the updated ingredients list */}
-            <h4 className="font-medium text-xl mb-2 text-indigo-800">Ingredients:</h4>
+            <h4 className="font-semibold text-xl mb-2 text-indigo-700">Ingredients:</h4>
             <ul className="list-disc list-inside mb-4">
               {ingredients.map((ingredient: any) => (
                 <li
@@ -207,7 +207,7 @@ export default function EditRecipeCard({
               ))}
             </ul>
             {/* Display the updated instructions */}
-            <h4 className="font-semibold text-xl mb-3 text-indigo-700">Instructions:</h4>
+            <h4 className="font-semibold text-xl mb-2 text-indigo-700">Instructions:</h4>
             <div className="text-base leading-relaxed">
               {editedRecipe.instructions
                 .split('\n')
@@ -217,8 +217,9 @@ export default function EditRecipeCard({
             </div>
           </div>
         </div>
-        <div className="w-1/2 pl-4 border-2 border-indigo-300 rounded-lg p-4 bg-indigo-50 shadow-md relative">
-          <h4 className="font-semibold text-xl mb-3 text-indigo-700">Edit Ingredients:</h4>
+        <div className="w-1/2 pl-4 flex flex-col">
+          <div className="w-full max-w-md">
+          <h4 className="font-semibold text-xl mb-3 text-indigo-700 text-center">Edit Ingredients:</h4>
           {ingredients.map((ingredient: any, index: number) => (
             <div key={ingredient.id} className="flex items-center mb-2">
               <Input
@@ -238,16 +239,16 @@ export default function EditRecipeCard({
             </div>
           ))}
           {/* Wrap Add Ingredient and Update Recipe buttons in a single flex container */}
-          <div className="flex items-center gap-2 mt-2 justify-end">
+          <div className="flex items-center gap-2 mt-3 justify-end">
             <Button
               onClick={handleAddIngredient}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white "
+              className="bg-indigo-600 bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-indigo-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" /> Add Ingredient
             </Button>
             <Button
               onClick={handleUpdateRecipe}
-              className="bg-indigo-600  bg-gradient-to-r bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-indigo-700 text-white w-full"
+              className="bg-indigo-600 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-indigo-700 text-white w-full"
               disabled={isUpdating}
             >
               {isUpdating ? (
@@ -259,19 +260,12 @@ export default function EditRecipeCard({
               )}
             </Button>
           </div>
-          <div className="mt-4 w-half flex justify-end">
-            {/* <Button
-              onClick={onCancel}
-              variant="outline"
-              className="mr-2 w- bg-indigo-600 text-white hover:bg-indigo-700"
-            >
-              Exit without saving
-            </Button> */}
-            <Button
-              onClick={handleSave}
-              className="bg-indigo-600 w-full hover:bg-indigo-700 text-white"
-              disabled={isSaving}
-            >
+          </div>
+          <div className="fixed bottom-4 right-4">
+            <Button onClick={onCancel} variant="outline" className="mr-2 bg-white text-indigo-600 hover:bg-indigo-100 border-indigo-600">
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving} className="bg-indigo-600  bg-gradient-to-r bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-indigo-700 text-white">
               {isSaving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
