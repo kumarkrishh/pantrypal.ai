@@ -343,7 +343,7 @@ export default function RecipeGenerator() {
                   Preferences
                 </TabsTrigger>
               </TabsList>
-
+  
               <TabsContent value="ingredients" className="space-y-6">
                 <div className="grid gap-6">
                   <ImageUpload
@@ -395,48 +395,29 @@ export default function RecipeGenerator() {
                   </div>
                 </div>
               </TabsContent>
-
-              <TabsContent value="preferences" className="space-y-8">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label className="text-base font-medium text-gray-700">
-                      Maximum Additional Ingredients: {maxAdditionalIngredients}
-                    </Label>
-                    <Slider
-                      value={[maxAdditionalIngredients]}
-                      onValueChange={(value) => setMaxAdditionalIngredients(value[0])}
-                      min={0}
-                      max={10}
-                      step={1}
-                      disabled={isRecipeGenerated}
-                      className="py-4"
-                    />
-                    <p className="text-sm text-gray-500">
-                      Limit the number of non-inputted ingredients needed for recipes
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <Label className="text-base font-medium text-gray-700">
-                      Max Number of Recipes: {numRecipes}
-                    </Label>
-                    <Slider
-                      value={[numRecipes]}
-                      onValueChange={(value) => setNumRecipes(value[0])}
-                      min={1}
-                      max={10}
-                      step={1}
-                      disabled={isRecipeGenerated}
-                      className="py-4"
-                    />
-                    <p className="text-sm text-gray-500">
-                      Choose up to how many recipe suggestions you&apos;d like to receive
-                    </p>
-                  </div>
+  
+              <TabsContent value="preferences" className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-base font-medium text-gray-700">
+                    Max Number of Recipes: {numRecipes}
+                  </Label>
+                  <Slider
+                    value={[numRecipes]}
+                    onValueChange={(value) => setNumRecipes(value[0])}
+                    min={1}
+                    max={10}
+                    step={1}
+                    disabled={isRecipeGenerated}
+                    className="py-4"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Choose up to how many recipe suggestions you&apos;d like to receive
+                  </p>
                 </div>
               </TabsContent>
+  
             </Tabs>
-
+  
             <div className="mt-8 pt-6 border-t border-indigo-50">
               {!isRecipeGenerated ? (
                 <Button
@@ -473,13 +454,13 @@ export default function RecipeGenerator() {
             </div>
           </CardContent>
         </Card>
-
+  
         {error && (
           <Alert variant="destructive" className="mb-8">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
+  
         {editingRecipe ? (
           <EditRecipeCard
             recipe={editingRecipe}
@@ -503,4 +484,4 @@ export default function RecipeGenerator() {
       </div>
     </div>
   );
-}
+            }  
