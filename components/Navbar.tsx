@@ -4,12 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { Button } from "@/components/ui/button";
-import { Home, Info, Mail, Heart, LogIn, LogOut, ChefHat } from "lucide-react";
+import { Home, Mail, Heart, LogIn, LogOut, ChefHat } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
   const { data: session } = useSession();
   const router = useRouter();
+
+  const handleFavoritesClick = (e: any) => {
+    if (!session) {
+      e.preventDefault();
+      alert("You need to be logged in to view your favorites.");
+    }
+  };
 
   return (
     <nav className="w-full bg-white/60 backdrop-blur-md shadow-sm border-b border-indigo-100 sticky top-0 z-50 backdrop-blur-sm">
@@ -32,7 +39,7 @@ const Navbar = () => {
               Recipe Generator
             </Button>
           </Link>
-          <Link href="/saved-recipes">
+          <Link href="/saved-recipes" onClick={handleFavoritesClick}>
             <Button
               variant="ghost"
               className="text-gray-700 hover:bg-blur-md hover:text-indigo-600"
@@ -54,9 +61,9 @@ const Navbar = () => {
 
           {session ? (
             <Button
-            onClick={() =>
-              signOut({ callbackUrl: '/' }).then(() => router.push('/'))
-            }
+              onClick={() =>
+                signOut({ callbackUrl: '/' }).then(() => router.push('/'))
+              }
               variant="ghost"
               className="text-gray-700 hover:bg-blur-md hover:text-indigo-600 ml-2"
             >
