@@ -84,76 +84,92 @@ export default function RecipeGenerator() {
     }
   };
 
-const handleGenerateRecipe = async () => {
-  if (ingredients.length === 0) {
-    return;
-  }
-  setLoading(true);
-  setError('');
-  setRecipes([]);
-
-  for (let i = 0; i < apiKey.length; i++) {
-    try {
-      const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
-        params: {
-          ingredients: ingredients.join(','),
-          number: numRecipes,
-          ranking: 1,
-          apiKey: apiKey[i],
-        },
-      });
-
-      if (response.data.length === 0) {
-        alert('No recipes found, try a new recipe search');
-        setRecipes([]);
-        setLoading(false);
-        setIsRecipeGenerated(false);
-        return;
-      }
-
-      const recipeDetails = await Promise.all(
-        response.data.map(async (recipe: any) => {
-          const [details, nutrition] = await Promise.all([
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
-              params: { apiKey: apiKey[i] },
-            }),
-            axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
-              params: { apiKey: apiKey[i] },
-            }),
-          ]);
-
-          const formattedInstructions = await formatInstructions(details.data.instructions);
-
-          // Calculate additional ingredients
-          const additionalIngredients = recipe.usedIngredients.filter((ingredient: any) =>
-            !ingredients.includes(ingredient.name)
-          );
-
-          if (additionalIngredients.length > maxAdditionalIngredients) {
-            return null;  // This recipe exceeds the max additional ingredients
-          }
-
-          return {
-            ...details.data,
-            instructions: formattedInstructions,
-            nutrition: nutrition.data,
-          };
-        })
-      );
-
-      // Filter out null recipes
-      const validRecipes = recipeDetails.filter((recipe) => recipe !== null);
-
-      setRecipes(validRecipes);
-      setIsRecipeGenerated(true);
-      break;
-    } catch (err) {
-      console.log(`API Key #${i + 1} failed. Trying the next key...`);
+  const handleGenerateRecipe = async () => {
+    if (ingredients.length === 0) {
+      return;
     }
-  }
-
-  setLoading(false);
-};
+    setLoading(true);
+    setError('');
+    setRecipes([]);
+  
+    for (let i = 0; i < apiKey.length; i++) {
+      try {
+        const response = await axios.get('https://api.spoonacular.com/recipes/findByIngredients', {
+          params: {
+            ingredients: ingredients.join(','),
+            number: numRecipes,
+            ranking: 1,
+            apiKey: apiKey[i],
+          },
+        });
+  
+        if (response.data.length === 0) {
+          alert('No recipes found, try a new recipe search');
+          setRecipes([]);
+          setLoading(false);
+          setIsRecipeGenerated(false);
+          return;
+        }
+  
+        const recipeDetails = await Promise.all(
+          response.data.map(async (recipe: any) => {
+            const [details, nutrition] = await Promise.all([
+              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/information`, {
+                params: { apiKey: apiKey[i] },
+              }),
+              axios.get(`https://api.spoonacular.com/recipes/${recipe.id}/nutritionWidget.json`, {
+                params: { apiKey: apiKey[i] },
+              }),
+            ]);
+  
+            const formattedInstructions = await formatInstructions(details.data.instructions);
+  
+            // Calculate additional ingredients
+            const additionalIngredients = recipe.usedIngredients.filter(
+              (ingredient: any) => !ingredients.includes(ingredient.name)
+            );
+  
+            if (additionalIngredients.length > maxAdditionalIngredients) {
+              return null; // This recipe exceeds the max additional ingredients
+            }
+  
+            return {
+              ...details.data,
+              instructions: formattedInstructions,
+              nutrition: nutrition.data,
+            };
+          })
+        );
+  
+        // Filter out null recipes
+        const validRecipes = recipeDetails.filter((recipe) => recipe !== null);
+  
+        // Sort recipes by number of missing ingredients
+        const sortedRecipes = validRecipes.sort((a, b) => {
+          const aMissingIngredients = a.extendedIngredients.filter(
+            (ingredient: any) => !ingredientVariants.some(
+              (variant) => ingredient.name?.toLowerCase().includes(variant)
+            )
+          ).length;
+          
+          const bMissingIngredients = b.extendedIngredients.filter(
+            (ingredient: any) => !ingredientVariants.some(
+              (variant) => ingredient.name?.toLowerCase().includes(variant)
+            )
+          ).length;
+          
+          return aMissingIngredients - bMissingIngredients;
+        });
+  
+        setRecipes(sortedRecipes);
+        setIsRecipeGenerated(true);
+        break;
+      } catch (err) {
+        console.log(`API Key #${i + 1} failed. Trying the next key...`);
+      }
+    }
+    setLoading(false);
+  };
 
   const handleNewRecipe = () => {
     setIngredients([]);
