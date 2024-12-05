@@ -10,7 +10,7 @@ const Navbar = () => {
   const { data: session } = useSession();
 
   return (
-    <nav className="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 border-b border-indigo-100 sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="w-full bg-white/60 backdrop-blur-md shadow-sm border-b border-indigo-100 sticky top-0 z-50 backdrop-blur-sm">
       <div className="max-w-[1400px] mx-auto px-4 flex h-16 items-center justify-between">
         <Link 
           href="/" 
@@ -24,7 +24,7 @@ const Navbar = () => {
           <Link href="/">
             <Button
               variant="ghost"
-              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+              className="text-gray-700 hover:bg-blur-md hover:text-indigo-600"
             >
               <Home className="w-4 h-4 mr-2" />
               Recipe Generator
@@ -33,7 +33,7 @@ const Navbar = () => {
           <Link href="/saved-recipes">
             <Button
               variant="ghost"
-              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+              className="text-gray-700 hover:bg-blur-md hover:text-indigo-600"
             >
               <Heart className="w-4 h-4 mr-2" />
               Favorites
@@ -43,7 +43,7 @@ const Navbar = () => {
           <Link href="/contact">
             <Button
               variant="ghost"
-              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+              className="text-gray-700 hover:bg-blur-md hover:text-indigo-600"
             >
               <Mail className="w-4 h-4 mr-2" />
               Contact
@@ -54,7 +54,7 @@ const Navbar = () => {
             <Button
               onClick={() => signOut()}
               variant="ghost"
-              className="text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 ml-2"
+              className="text-gray-700 hover:bg-blur-md hover:text-indigo-600 ml-2"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out

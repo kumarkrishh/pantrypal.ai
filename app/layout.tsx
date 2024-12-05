@@ -6,8 +6,16 @@ import { NextAuthProvider } from '@/components/NextAuthProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'RecipeAI',
+  title: 'PantryPal',
   description: 'AI Recipe Generator',
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+  },
 };
 
 export default function RootLayout({
