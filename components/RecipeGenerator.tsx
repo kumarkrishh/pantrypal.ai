@@ -372,7 +372,9 @@ const handleGenerateRecipe = async () => {
   };
 
   const formatInstructions = async (instructions: string) => {
-    if (!openai) return instructions;
+    if (!openai || !instructions) {
+      return 'The original recipe author has not provided detailed instructions for the recipe.';
+    }
   
     try {
       const response = await openai.chat.completions.create({
@@ -389,7 +391,7 @@ const handleGenerateRecipe = async () => {
         ]
       });
       
-      return response.choices[0].message.content || instructions;
+      return response.choices[0].message.content || instructions || 'The recipe author has not included specific recipe instructions in this content.';
     } catch (err) {
       console.error('Failed to format instructions:', err);
       return instructions;
