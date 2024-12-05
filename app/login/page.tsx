@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 export default function SignIn() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const {
     register,
@@ -40,6 +42,8 @@ export default function SignIn() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
+      setAuthError(null);
+      
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
@@ -47,12 +51,14 @@ export default function SignIn() {
       });
 
       if (result?.error) {
+        setAuthError('Invalid email or password');
         return;
       }
 
       router.push('/');
       router.refresh();
     } catch (error) {
+      setAuthError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +74,7 @@ export default function SignIn() {
   };
 
   const navigateToRegister = () => {
-    router.push('/register'); // Change to your register path as needed
+    router.push('/register');
   };
 
   return (
@@ -102,6 +108,11 @@ export default function SignIn() {
               </span>
             </div>
           </div>
+          {authError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{authError}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
