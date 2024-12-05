@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, Plus, Loader2 } from 'lucide-react';
 import OpenAI from 'openai';
+import Navbar from '@/components/Navbar';
 
 const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 let openai: OpenAI;
@@ -159,7 +160,7 @@ export default function EditRecipeCard({
         console.log('Recipe updated successfully:', data);
         onSave(updatedRecipe);
       } else {
-        console.error('Failed to update recipe:', data.error);
+        alert("You must be signed in to save edits")
       }
     } catch (error) {
       console.error('Error updating recipe:', error);
@@ -169,14 +170,19 @@ export default function EditRecipeCard({
   };
 
   return (
+    
     <Card className="fixed inset-0 z-50 overflow-auto bg-white">
-      <CardHeader>
-        <CardTitle className="text-2xl">{editedRecipe.title}</CardTitle>
-      </CardHeader>
+      <Navbar />
+      <div className="text-center">
+        <CardHeader>
+          <CardTitle className="font-semibold text-3xl mb-3 text-indigo-600">
+            Recipe for {editedRecipe.title}
+          </CardTitle>
+        </CardHeader>
+      </div>
       <CardContent className="flex">
         <div className="w-1/2 pr-4">
           {/* Left side: The recipe details */}
-          <h3 className="text-xl font-semibold mb-2">Recipe</h3>
           <div className="border-2 border-indigo-300 rounded-lg p-4 bg-indigo-50 shadow-md relative">
             {isUpdating && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
@@ -187,19 +193,21 @@ export default function EditRecipeCard({
               </div>
             )}
             {/* Display the updated ingredients list */}
-            <h4 className="font-medium text-lg mb-2">Ingredients:</h4>
+            <h4 className="font-medium text-xl mb-2 text-indigo-800">Ingredients:</h4>
             <ul className="list-disc list-inside mb-4">
               {ingredients.map((ingredient: any) => (
                 <li
                   key={ingredient.id}
-                  className={`${!ingredient.selected ? 'line-through text-gray-400' : ''}`}
+                  className={`${
+                    !ingredient.selected ? 'line-through text-gray-400' : ''
+                  }`}
                 >
                   {ingredient.original}
                 </li>
               ))}
             </ul>
             {/* Display the updated instructions */}
-            <h4 className="font-medium text-lg mb-2">Instructions:</h4>
+            <h4 className="font-semibold text-xl mb-3 text-indigo-700">Instructions:</h4>
             <div className="text-base leading-relaxed">
               {editedRecipe.instructions
                 .split('\n')
@@ -209,14 +217,10 @@ export default function EditRecipeCard({
             </div>
           </div>
         </div>
-        <div className="w-1/2 pl-4">
-          <h3 className="text-xl font-semibold mb-2">Ingredients</h3>
+        <div className="w-1/2 pl-4 border-2 border-indigo-300 rounded-lg p-4 bg-indigo-50 shadow-md relative">
+          <h4 className="font-semibold text-xl mb-3 text-indigo-700">Edit Ingredients:</h4>
           {ingredients.map((ingredient: any, index: number) => (
             <div key={ingredient.id} className="flex items-center mb-2">
-              <Checkbox
-                checked={ingredient.selected}
-                onCheckedChange={() => handleIngredientToggle(index)}
-              />
               <Input
                 value={ingredient.original}
                 onChange={(e) => handleIngredientEdit(index, e.target.value)}
@@ -226,47 +230,61 @@ export default function EditRecipeCard({
               />
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => handleRemoveIngredient(index)}
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
           ))}
-          <Button onClick={handleAddIngredient} className="mt-2">
-            <Plus className="h-4 w-4 mr-2" /> Add Ingredient
-          </Button>
-          <Button 
-            onClick={handleUpdateRecipe} 
-            className="mt-4 w-full"
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Updating Recipe...
-              </>
-            ) : (
-              'Update Recipe'
-            )}
-          </Button>
+          {/* Wrap Add Ingredient and Update Recipe buttons in a single flex container */}
+          <div className="flex items-center gap-2 mt-2 justify-end">
+            <Button
+              onClick={handleAddIngredient}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white "
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Ingredient
+            </Button>
+            <Button
+              onClick={handleUpdateRecipe}
+              className="bg-indigo-600  bg-gradient-to-r bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-indigo-700 text-white w-full"
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                </>
+              ) : (
+                'Update Recipe'
+              )}
+            </Button>
+          </div>
+          <div className="mt-4 w-half flex justify-end">
+            {/* <Button
+              onClick={onCancel}
+              variant="outline"
+              className="mr-2 w- bg-indigo-600 text-white hover:bg-indigo-700"
+            >
+              Exit without saving
+            </Button> */}
+            <Button
+              onClick={handleSave}
+              className="bg-indigo-600 w-full hover:bg-indigo-700 text-white"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
-      <div className="fixed bottom-4 right-4">
-        <Button onClick={onCancel} variant="outline" className="mr-2">
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            'Save Changes'
-          )}
-        </Button>
-      </div>
     </Card>
   );
+  
 }
