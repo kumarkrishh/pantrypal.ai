@@ -124,13 +124,12 @@ export default function RecipeGenerator() {
   
             const formattedInstructions = await formatInstructions(details.data.instructions);
   
-            // Calculate additional ingredients
             const additionalIngredients = recipe.usedIngredients.filter(
               (ingredient: any) => !ingredients.includes(ingredient.name)
             );
   
             if (additionalIngredients.length > maxAdditionalIngredients) {
-              return null; // This recipe exceeds the max additional ingredients
+              return null;
             }
   
             return {
@@ -141,10 +140,8 @@ export default function RecipeGenerator() {
           })
         );
   
-        // Filter out null recipes
         const validRecipes = recipeDetails.filter((recipe) => recipe !== null);
   
-        // Sort recipes by number of missing ingredients
         const sortedRecipes = validRecipes.sort((a, b) => {
           const aMissingIngredients = a.extendedIngredients.filter(
             (ingredient: any) => !ingredientVariants.some(
