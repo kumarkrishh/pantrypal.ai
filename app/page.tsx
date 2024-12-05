@@ -1,9 +1,11 @@
-import LoginForm from '@/components/LoginForm';
-import RegisterForm from '@/components/RegisterForm';
+import RecipeGenerator from "@/components/RecipeGenerator";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+      <Navbar />
+      <RecipeGenerator />
     </main>
   );
 }
