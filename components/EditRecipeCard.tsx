@@ -35,7 +35,6 @@ export default function EditRecipeCard({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Remove duplicates and initialize ingredients with 'selected' property and unique id
   const uniqueIngredients = () => {
     const seen = new Set();
     const result = [];
@@ -46,7 +45,7 @@ export default function EditRecipeCard({
         result.push({
           ...ing,
           selected: ing.selected !== undefined ? ing.selected : true,
-          id: Date.now() + Math.random(), // unique id for this ingredient
+          id: Date.now() + Math.random(), // unique id
         });
       }
     }
@@ -182,7 +181,6 @@ export default function EditRecipeCard({
       </div>
       <CardContent className="flex">
         <div className="w-1/2 pr-4">
-          {/* Left side: The recipe details */}
           <div className="border-2 border-indigo-300 rounded-lg p-4 bg-indigo-50 shadow-md relative">
             {isUpdating && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
@@ -192,7 +190,6 @@ export default function EditRecipeCard({
                 </div>
               </div>
             )}
-            {/* Display the updated ingredients list */}
             <h4 className="font-semibold text-xl mb-2 text-indigo-700">Ingredients:</h4>
             <ul className="list-disc list-inside mb-4">
               {ingredients.map((ingredient: any) => (
@@ -206,7 +203,6 @@ export default function EditRecipeCard({
                 </li>
               ))}
             </ul>
-            {/* Display the updated instructions */}
             <h4 className="font-semibold text-xl mb-2 text-indigo-700">Instructions:</h4>
             <div className="text-base leading-relaxed">
               {editedRecipe.instructions
@@ -223,6 +219,8 @@ export default function EditRecipeCard({
           {ingredients.map((ingredient: any, index: number) => (
             <div key={ingredient.id} className="flex items-center mb-2">
               <Input
+                type="text"
+                placeholder="Enter ingredient (helpful if you include use case)"
                 value={ingredient.original}
                 onChange={(e) => handleIngredientEdit(index, e.target.value)}
                 className={`ml-2 flex-grow ${
@@ -238,7 +236,6 @@ export default function EditRecipeCard({
               </Button>
             </div>
           ))}
-          {/* Wrap Add Ingredient and Update Recipe buttons in a single flex container */}
           <div className="flex items-center gap-2 mt-3 justify-end">
             <Button
               onClick={handleAddIngredient}
