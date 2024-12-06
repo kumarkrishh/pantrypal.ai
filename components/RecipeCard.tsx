@@ -274,7 +274,7 @@ export default function RecipeCard({
             {/* Edit Recipe Button */}
             <Button
               variant="default"
-              className="w-full"
+              className="w-full bg-purple-500 text-white hover:bg-purple-600"
               onClick={() => onEditRecipe?.(recipe)}
             >
               Edit Recipe
