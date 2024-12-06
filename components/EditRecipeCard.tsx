@@ -174,7 +174,7 @@ export default function EditRecipeCard({
       <Navbar />
       <div className="text-center">
         <CardHeader>
-          <CardTitle className="font-semibold text-4xl mb-2 bg-gradient-to-r from-purple-600 to-indigo-800 text-transparent bg-clip-text">
+          <CardTitle className="font-semibold text-4xl mb-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">
             Recipe for {editedRecipe.title}
           </CardTitle>
         </CardHeader>
@@ -239,13 +239,13 @@ export default function EditRecipeCard({
           <div className="flex items-center gap-2 mt-3 justify-end">
             <Button
               onClick={handleAddIngredient}
-              className="bg-indigo-600 bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-indigo-600 bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
             >
               <Plus className="h-4 w-4 mr-2" /> Add Ingredient
             </Button>
             <Button
               onClick={handleUpdateRecipe}
-              className="bg-indigo-600 bg-gradient-to-r from-indigo-600 to-purple-600 hover:bg-indigo-700 text-white w-full"
+              className="bg-indigo-600 bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-indigo-700 text-white w-full"
               disabled={isUpdating}
             >
               {isUpdating ? (
