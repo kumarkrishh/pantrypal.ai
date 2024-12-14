@@ -1,4 +1,4 @@
-# PantryPal
+# PantryPal ([**Live Website**](https://pantrypal-ai-git-main-krishkumars-projects.vercel.app/))
 
 ## Overview
 PantryPal is your personal kitchen assistant, designed to help you create delicious recipes based on the ingredients you have on hand. Whether you're looking to minimize food waste, get creative in the kitchen, or simply find meal ideas quickly, PantryPal makes it easy to cook smarter and tastier meals.
