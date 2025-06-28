@@ -13,9 +13,8 @@ PantryPal is your personal kitchen assistant, designed to help you create delici
   - Favorite recipes and associated information for future reference
 
 ## Additional Features
-- Open AI API Integration:  
+- Gemini API Integration:  
   - Input ingredients via image upload
-  - Edit recipe ingredients to match user constraints
 - Social Features:
   - Share recipes with family and friends via various platforms
   - Contact PantryPal's developers for feedback, comments, and bug reports
@@ -39,14 +38,8 @@ NEXTAUTH_URL=
 NEXTAUTH_SECRET=
 GOOGLE_CLIENT_ID=
 MONGODB_URI=
-NEXT_PUBLIC_SPOONACULAR_API_KEY_1=
-NEXT_PUBLIC_SPOONACULAR_API_KEY_2=
-NEXT_PUBLIC_SPOONACULAR_API_KEY_3=
+NEXT_PUBLIC_SPOONACULAR_API_KEY=
 NEXT_PUBLIC_GEMINI_API_KEY=
-NEXT_PUBLIC_OPENAI_API_KEY=
-NEXT_PUBLIC_EMAIL_JS_SERVICE_ID=
-NEXT_PUBLIC_EMAIL_JS_TEMPLATE_ID=
-NEXT_PUBLIC_EMAIL_JS_USER_ID=
 ```
 
 ### To run the Frontend (React):
