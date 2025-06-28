@@ -19,8 +19,8 @@ import { createOpenAIClient, processImageForIngredients } from '@/lib/utils/open
 import { fileToBase64 } from '@/lib/utils/file';
 import OpenAI from 'openai';
 import EditRecipeCard from '@/components/EditRecipeCard';
-
-
+import { signIn } from "next-auth/react";
+import { Upload, Trash2 } from 'lucide-react';
 
 export default function RecipeGenerator() {
   const { data: session } = useSession();
@@ -178,86 +178,59 @@ export default function RecipeGenerator() {
     setIsRecipeGenerated(false);
     setIsImageProcessing(false);
   };
+const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (!session) {
+    alert('You must be logged in to use image upload.');
+    return;
+  }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    setSelectedImage(file);
-    setImagePreview(URL.createObjectURL(file));
-    setIsImageProcessing(true);
-    setImageError(null);
+  setSelectedImage(file);
+  setImagePreview(URL.createObjectURL(file));
+  setIsImageProcessing(true);
+  setImageError(null);
 
-    try {
-      const base64Image = await fileToBase64(file);
-      const detectedIngredients = await processImageForIngredients(openai, base64Image);
-      if (detectedIngredients.length == 1) {
-        await new Promise<void>((resolve) => {
-          alert('No ingredients were found, try a new image.');
-          //setError('No ingredients were found, try a new image.');
-          resolve();
-        });
-        setSelectedImage(null);
-        setImagePreview(null);
-        setImageError(null);
-        setIsImageProcessing(false);
-        setCurrentIngredient('');
-    
-      } else {
-        setDetectedIngredients(detectedIngredients);
-        setIngredients(prevIngredients => { 
-          const newIngredients = Array.from(new Set([...prevIngredients, ...detectedIngredients])); 
-          return newIngredients; 
-        });
-      }
-    } catch (err: any) {
-      setImageError(err instanceof Error ? err.message : 'An unknown error occurred');
-      console.error(err);
-    } finally {
+  try {
+    const base64Image = await fileToBase64(file);
+    const detectedIngredients = await processImageForIngredients(openai, base64Image);
+
+    if (detectedIngredients.length === 0) {
+      alert('No ingredients were found, try a new image.');
+      setSelectedImage(null);
+      setImagePreview(null);
+      setImageError(null);
       setIsImageProcessing(false);
+      setCurrentIngredient('');
+    } else {
+      setDetectedIngredients(detectedIngredients);
+      setIngredients(prev => Array.from(new Set([...prev, ...detectedIngredients])));
     }
-  };
+  } catch (err: any) {
+    setImageError(err instanceof Error ? err.message : 'An unknown error occurred');
+    console.error(err);
+  } finally {
+    setIsImageProcessing(false);
+  }
+};
+
 
   const handleImageRemove = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
-    setImageError(null);
-    setIsImageProcessing(false);
-    setCurrentIngredient('');
-    if (imagePreview) {
-      const remainingIngredients = ingredients.filter(ingredient => 
-        !detectedIngredients.includes(ingredient)
-      );
-      setIngredients(remainingIngredients);
-    }
-  };
+  setSelectedImage(null);
+  setImagePreview(null);
+  setImageError(null);
+  setIsImageProcessing(false);
+  setCurrentIngredient('');
+
+};
+
 
   const formatInstructions = async (instructions: string) => {
-    if (!openai || !instructions) {
-      return 'The original recipe author has not provided detailed instructions for the recipe.';
-    }
-  
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'Format these cooking instructions into clear, numbered steps. Remove any ads or unnecessary text. Make sure the amounts used in the ingredients are kept uniform.'
-          },
-          {
-            role: 'user',
-            content: instructions
-          }
-        ]
-      });
-      
-      return response.choices[0].message.content || instructions || 'The recipe author has not included specific recipe instructions in this content.';
-    } catch (err) {
-      console.error('Failed to format instructions:', err);
-      return instructions;
-    }
-  };
+  // Disable GPT-based formatting if OpenAI is unavailable
+  return instructions || 'The original recipe author has not provided detailed instructions for the recipe.';
+};
+
 
   const ingredientVariants = ingredients.map(ingredient => [
     pluralize.singular(ingredient),
@@ -316,45 +289,77 @@ export default function RecipeGenerator() {
 
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-10">
-      <div className="max-w-[70vw] mx-auto">
-        <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
-          <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
-            <CardTitle className="text-2xl font-semibold text-gray-800">AI Recipe Generator</CardTitle>
-            <CardDescription className="text-gray-600">
-              Let&apos;s turn your available ingredients into amazing recipes
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <Tabs defaultValue="ingredients" className="space-y-6">
-              <TabsList className="grid grid-cols-2 gap-4 bg-indigo-50/50 p-1">
-                <TabsTrigger 
-                  value="ingredients" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
-                >
-                  <Utensils className="h-4 w-4 mr-2" />
-                  Ingredients
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="preferences"
-                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600"
-                >
-                  <Settings2 className="h-4 w-4 mr-2" />
-                  Preferences
-                </TabsTrigger>
-              </TabsList>
-  
-              <TabsContent value="ingredients" className="space-y-6">
-                <div className="grid gap-6">
-                  <ImageUpload
-                    imagePreview={imagePreview}
-                    isRecipeGenerated={isRecipeGenerated}
-                    isImageProcessing={isImageProcessing}
-                    error={imageError}
-                    onImageUpload={handleImageUpload}
-                    onImageRemove={handleImageRemove}
-                  />
-                  <div className="flex gap-2">
+  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-[90vw] sm:max-w-[80vw] mx-auto">
+      <Card className="border-indigo-100 shadow-xl mb-12 overflow-hidden">
+        <CardHeader className="border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+          <CardTitle className="text-2xl font-semibold text-gray-800">AI Recipe Generator</CardTitle>
+          <CardDescription className="text-gray-600">
+            Let&apos;s turn your available ingredients into amazing recipes
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <Tabs defaultValue="ingredients" className="space-y-6">
+            <TabsList className="flex justify-between gap-2 bg-indigo-50/50 p-1 rounded-md">
+  <TabsTrigger 
+    value="ingredients" 
+    className="w-full text-sm data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+  >
+    <Utensils className="h-4 w-4 mr-2" />
+    Ingredients
+  </TabsTrigger>
+  <TabsTrigger 
+    value="preferences"
+    className="w-full text-sm data-[state=active]:bg-white data-[state=active]:text-indigo-600"
+  >
+    <Settings2 className="h-4 w-4 mr-2" />
+    Preferences
+  </TabsTrigger>
+</TabsList>
+
+
+            <TabsContent value="ingredients" className="space-y-6">
+              <div className="grid gap-6">
+  <div className="relative w-full">
+  {!session ? (
+  <div
+    onClick={() => signIn()}
+    className="rounded-xl border-2 border-dashed p-8 transition-all hover:border-indigo-300 hover:from-indigo-50/30 hover:to-purple-50/30 cursor-pointer"
+  >
+    <div className="flex flex-col items-center space-y-6">
+      <div className="flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
+          <Upload className="h-8 w-8 text-indigo-600" />
+        </div>
+        <span className="text-base font-medium text-gray-700">
+          Upload Ingredient Image
+        </span>
+       <p className="text-sm text-gray-500 mt-1 text-center">
+  Sign in to unlock AI image ingredient detection
+</p>
+
+      </div>
+    </div>
+  </div>
+) : (
+  <ImageUpload
+    imagePreview={imagePreview}
+    isRecipeGenerated={isRecipeGenerated}
+    isImageProcessing={isImageProcessing}
+    error={imageError}
+    onImageUpload={handleImageUpload}
+    onImageRemove={handleImageRemove}
+  />
+)}
+
+</div>
+
+
+
+  <div className="w-full space-y-4">
+
+                  <div className="flex flex-row gap-2">
+
                     <input
                       type="text"
                       value={currentIngredient}
@@ -394,94 +399,95 @@ export default function RecipeGenerator() {
                     ))}
                   </div>
                 </div>
-              </TabsContent>
-  
-              <TabsContent value="preferences" className="space-y-6">
-                <div className="space-y-4">
-                  <Label className="text-base font-medium text-gray-700">
-                    Max Number of Recipes: {numRecipes}
-                  </Label>
-                  <Slider
-                    value={[numRecipes]}
-                    onValueChange={(value) => setNumRecipes(value[0])}
-                    min={1}
-                    max={10}
-                    step={1}
-                    disabled={isRecipeGenerated}
-                    className="py-4"
-                  />
-                  <p className="text-sm text-gray-500">
-                    Choose up to how many recipe suggestions you&apos;d like to receive
-                  </p>
-                </div>
-              </TabsContent>
-  
-            </Tabs>
-  
-            <div className="mt-8 pt-6 border-t border-indigo-50">
-              {!isRecipeGenerated ? (
-                <Button
-                  onClick={handleGenerateRecipe}
-                  disabled={ingredients.length === 0 || loading || isImageProcessing}
-                  className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
-                >
-                  {isImageProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing Image...
-                    </>
-                  ) : loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Generating Recipes...
-                    </>
-                  ) : (
-                    <>
-                      <ChefHat className="mr-2 h-5 w-5" />
-                      Generate Recipes
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNewRecipe}
-                  variant="outline"
-                  className="w-full h-12 text-base border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-all"
-                >
-                  Start New Recipe Search
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-  
-        {error && (
-          <Alert variant="destructive" className="mb-8">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-  
-        {editingRecipe ? (
-          <EditRecipeCard
-            recipe={editingRecipe}
-            onSave={handleSaveEditedRecipe}
-            onCancel={handleCancelEdit}
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {recipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                isFavorited={favoritedRecipes.has(recipe.id)}
-                onFavoriteToggle={handleFavoriteToggle}
-                ingredientVariants={ingredientVariants}
-                onEditRecipe={handleEditRecipe}
-              />
-            ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="preferences" className="space-y-6">
+              <div className="space-y-4">
+                <Label className="text-base font-medium text-gray-700">
+                  Max Number of Recipes: {numRecipes}
+                </Label>
+                <Slider
+                  value={[numRecipes]}
+                  onValueChange={(value) => setNumRecipes(value[0])}
+                  min={1}
+                  max={10}
+                  step={1}
+                  disabled={isRecipeGenerated}
+                  className="py-4"
+                />
+                <p className="text-sm text-gray-500">
+                  Choose up to how many recipe suggestions you&apos;d like to receive
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-8 pt-6 border-t border-indigo-50">
+            {!isRecipeGenerated ? (
+              <Button
+                onClick={handleGenerateRecipe}
+                disabled={ingredients.length === 0 || loading || isImageProcessing}
+                className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 transition-all"
+              >
+                {isImageProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Processing Image...
+                  </>
+                ) : loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Generating Recipes...
+                  </>
+                ) : (
+                  <>
+                    <ChefHat className="mr-2 h-5 w-5" />
+                    Generate Recipes
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNewRecipe}
+                variant="outline"
+                className="w-full h-12 text-base border-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-all"
+              >
+                Start New Recipe Search
+              </Button>
+            )}
           </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
+
+      {error && (
+        <Alert variant="destructive" className="mb-8">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {editingRecipe ? (
+        <EditRecipeCard
+          recipe={editingRecipe}
+          onSave={handleSaveEditedRecipe}
+          onCancel={handleCancelEdit}
+        />
+      ) : (
+        <div className="px-2 sm:px-0 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {recipes.map((recipe) => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              isFavorited={favoritedRecipes.has(recipe.id)}
+              onFavoriteToggle={handleFavoriteToggle}
+              ingredientVariants={ingredientVariants}
+              onEditRecipe={handleEditRecipe}
+            />
+          ))}
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
+
             }  

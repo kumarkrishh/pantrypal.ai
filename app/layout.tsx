@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} text-indigo-600`}>
         <NextAuthProvider>
           {children}
         </NextAuthProvider>

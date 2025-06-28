@@ -6,16 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, Plus, Loader2 } from 'lucide-react';
-import OpenAI from 'openai';
 import Navbar from '@/components/Navbar';
 
-const openaiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-let openai: OpenAI;
-if (openaiKey) {
-  openai = new OpenAI({ apiKey: openaiKey, dangerouslyAllowBrowser: true });
-} else {
-  console.warn('OpenAI API key not found. Some features may not work.');
-}
 
 interface EditRecipeCardProps {
   recipe: any;
@@ -90,42 +82,6 @@ export default function EditRecipeCard({
     const selectedIngredients = ingredients.filter((ingredient: any) => ingredient.selected);
     console.log('Allowed ingredients:', selectedIngredients.map((ing: any) => ing.original));
 
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a culinary expert tasked with updating recipes based on a strict set of allowed ingredients.'
-          },
-          {
-            role: 'user',
-            content: `Here is the original recipe: ${editedRecipe.instructions}.
-            Here are the only ingredients we have: ${selectedIngredients
-              .map((ing: any) => ing.original)
-              .join(', ')}.
-            Edit the recipe as little as possible with these new ingredients. Make sure not to include any ingredient not in the list.
-            Strictly include the ingredient amount values and only use the new ingredients in the instructions.
-            Strictly just write out the instructions very descriptively, nothing else.`,
-          },
-        ],      
-        temperature: 0.7,
-        max_tokens: 500,
-      });
-
-      console.log('API response:', response);
-      const updatedRecipe = response.choices[0].message.content || '';
-      console.log(updatedRecipe);
-
-      setEditedRecipe((prevRecipe: any) => ({
-        ...prevRecipe,
-        instructions: updatedRecipe,
-      }));
-    } catch (error) {
-      console.error('Error updating recipe:', error);
-    } finally {
-      setIsUpdating(false);
-    }
   };
 
   const handleInputChange = useCallback(

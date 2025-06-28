@@ -97,50 +97,25 @@ export default function RecipeCard({
 
       {/* Recipe Title and Basic Info */}
       <CardHeader>
-  <CardTitle className="text-xl">{recipe.title}</CardTitle>
-  <CardDescription className="flex items-center gap-2 text-sm">
-    <span className="flex items-center gap-1">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 text-purple-600"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 101.414-1.414L11 9.586V5z"
-          clipRule="evenodd"
-        />
-      </svg>
-      {recipe.readyInMinutes} mins
-    </span>
-    <span>•</span>
-    <span className="flex items-center gap-1">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-7 w-7 text-purple-600"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0zM4 13a4 4 0 014-4h4a4 4 0 014 4v1H4v-1z" />
-      </svg>
-      Serves {recipe.servings}
-    </span>
-  </CardDescription>
-  {recipe.diets?.length > 0 && (
-    <div className="flex flex-wrap gap-1.5">
-      {recipe.diets.slice(0, 2).map((diet: string) => (
-        <Badge key={diet} variant="secondary" className="capitalize">
-          {diet}
-        </Badge>
-      ))}
-      {recipe.diets.length > 2 && (
-        <Badge variant="secondary">+{recipe.diets.length - 2}</Badge>
-      )}
-    </div>
-  )}
-</CardHeader>
-
+        <CardTitle className="text-xl">{recipe.title}</CardTitle>
+        <CardDescription className="flex items-center gap-2 text-sm">
+          <span>🕒 {recipe.readyInMinutes} mins</span>
+          <span>•</span>
+          <span>👥 Serves {recipe.servings}</span>
+        </CardDescription>
+        {recipe.diets?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {recipe.diets.slice(0, 2).map((diet: string) => (
+              <Badge key={diet} variant="secondary" className="capitalize">
+                {diet}
+              </Badge>
+            ))}
+            {recipe.diets.length > 2 && (
+              <Badge variant="secondary">+{recipe.diets.length - 2}</Badge>
+            )}
+          </div>
+        )}
+      </CardHeader>
 
       <CardContent className="space-y-4">
         {/* Quick Nutrition Facts */}
@@ -162,7 +137,7 @@ export default function RecipeCard({
         {/* Expand/Collapse Button */}
         <Button
           variant="outline"
-          className="w-full text-white hover:text-white bg-gradient-to-r from-purple-600 to-indigo-600"
+          className="w-full"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <span className="flex items-center gap-2">
@@ -296,14 +271,6 @@ export default function RecipeCard({
               </AccordionItem>
             </Accordion>
 
-            {/* Edit Recipe Button */}
-            <Button
-              variant="default"
-              className="w-full bg-purple-500 text-white hover:bg-purple-600"
-              onClick={() => onEditRecipe?.(recipe)}
-            >
-              Edit Recipe
-            </Button>
           </div>
         )}
       </CardContent>
